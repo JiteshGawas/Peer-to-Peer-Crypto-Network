@@ -1,0 +1,73 @@
+
+
+// {
+// This Part Was Inside Main
+// PopulateLatencyMatrix(Peers);
+
+// cout << "-----------------------------------------------------------------------------------------------------------------------" << endl;
+
+// for (int i = 0; i < MAX_PEERS; i++)
+// {
+//     for (int j = 0; j < MAX_PEERS; j++)
+//     {
+//         cout << latencyMatrix[i][j] << " ";
+//     }
+//     cout << endl;
+// }
+
+// Creating Connected Graph Among Peers
+//  int adjMatrix[Simulator.numNodes][Simulator.numNodes];
+
+// srand(time(0));
+// createGraph(Simulator.numNodes);
+// while(!isConnected()) createGraph(Simulator.numNodes, adjMatrix);
+
+// Question 5 : Latency Calculation
+// }
+
+//-------------------------------------------------Functions Graph Creation----------------------------------------------------------------------
+
+//-------------------------------------------------Latency Matrix Population----------------------------------------------------------------------
+
+// float calculate_delay(Peer Sender, Peer Receiver, int message_size)
+// {
+
+//     float c, d;
+//     float latency;
+//     if (Sender.NWspeed && Receiver.NWspeed)
+//     {
+//         c = 100e6;
+//     }
+//     else
+//     {
+//         c = 5e6;
+//     }
+
+//     int seed = chrono::system_clock::now().time_since_epoch().count();
+//     default_random_engine generator(seed);
+
+//     exponential_distribution<float> dij(0.1);
+
+//     d = dij(generator);
+
+//     latency = prop_delay + (message_size / c) + d;
+
+//     return latency;
+// }
+// void PopulateLatencyMatrix(vector<Peer> Peers)
+// {
+
+//     for (int i = 0; i < MAX_PEERS; i++)
+//     {
+//         for (int j = 0; j < MAX_PEERS; j++)
+//         {
+//             if (adj[i][j] == 0)
+//                 continue;
+
+//             else
+//             {
+//                 latencyMatrix[i][j] = calculate_delay(Peers[i], Peers[j], 100);
+//             }
+//         }
+//     }
+// }
