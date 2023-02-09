@@ -48,7 +48,6 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers PeerNetwor
         adjMatrix.createGraph();
     }
 
-    PeerNetwork.setConnectedPeers(adjMatrix);
     //-- -- -- -- -- -Printing The Adjacency Matrix-- -- -- -- -- -- -- -- -- -- --
     // for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
     // {
@@ -59,8 +58,11 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers PeerNetwor
     //     cout << endl;
     // }
 
+    PeerNetwork.setConnectedPeers(adjMatrix);
+
     while (!this->EventQueue.empty())
     {
+
         cout << this->EventQueue.top().T << endl;
         this->EventQueue.pop();
     }

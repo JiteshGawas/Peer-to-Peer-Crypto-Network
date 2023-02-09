@@ -107,8 +107,14 @@ void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnTyp
 
     string Message = ss.str();
     // cout << Message << endl;
-    Transaction *T = new Transaction(Message, Simulator.globalTime);
+    Transaction *T;
     // cout << T << endl;
-    Event E(T);
-    Simulator.EventQueue.push(E);
-}
+    if (TxnType == "Pays")
+    {
+        for (int i = 0; i < this->connectedPeers.size(); i++)
+        {
+            T = new Transaction(Message, Simulator.globalTime);
+            Event E(T, "txn_Receive", this->connectedPeers[i], this);
+            Simulator.EventQueue.push(E);
+        }
+    }

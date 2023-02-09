@@ -37,6 +37,7 @@ public:
     int interArrivalTime, terminationTime;
     int transactionID_Counter = 0;
     priority_queue<Event, vector<Event>, compareTimestamp> EventQueue;
+    // Event *currEvent;
 
     DiscreteEventSimulator(int a, float b, float c, float d);
     void PrintParameters();
