@@ -1,9 +1,7 @@
+#include "ClassDeclarations.h"
 #include <iostream>
 #include <random>
 #include <chrono>
-#include "Simulator.h"
-#include "Graph.h"
-#include "Event.h"
 using namespace std;
 
 #define MAX_Transactions 500
@@ -41,7 +39,7 @@ bool compareTimestamp ::operator()(const Event &E1, const Event &E2)
 
 // added comment
 
-void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix)
+void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers PeerNetwork)
 {
     adjMatrix.createGraph();
     while (!adjMatrix.isConnected())
@@ -50,6 +48,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix)
         adjMatrix.createGraph();
     }
 
+    PeerNetwork.setConnectedPeers(adjMatrix);
     //-- -- -- -- -- -Printing The Adjacency Matrix-- -- -- -- -- -- -- -- -- -- --
     // for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
     // {

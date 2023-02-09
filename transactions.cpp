@@ -1,11 +1,9 @@
-
+#include "ClassDeclarations.h"
 #include <iostream>
 #include <sstream>
 #include <string.h>
 #include <functional>
 
-#include "transactions.h"
-#include "Simulator.h"
 using namespace std;
 
 Transaction ::Transaction(string Message, float TimeStamp)

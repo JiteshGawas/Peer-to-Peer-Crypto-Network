@@ -1,4 +1,4 @@
-#include "Blockchain.h"
+#include "ClassDeclarations.h"
 #include <iostream>
 
 Block::Block(int blockID, int PrevHash)

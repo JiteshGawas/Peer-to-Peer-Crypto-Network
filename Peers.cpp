@@ -1,14 +1,10 @@
+#include "ClassDeclarations.h"
 #include <iostream>
 #include <random>
-#include "Graph.h"
 #include <set>
 #include <map>
 #include <sstream>
 #include <string>
-#include "Simulator.h"
-#include "Blockchain.h"
-#include "Peers.h"
-// #include "Event.h"
 
 Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
 {
@@ -57,7 +53,33 @@ void Peers::PeerInfo()
         // }
         cout << PeerVec[i].NodeId << "  " << PeerVec[i].balance << "  " << PeerVec[i].NWspeed << "  " << PeerVec[i].CPU_Usage << endl;
     }
-};
+}
+
+void Peers ::setConnectedPeers(Graph &adjMatrix)
+{
+    for (int i = 0; i < this->numNodes; i++)
+    {
+        for (int j = 0; j < this->numNodes; j++)
+        {
+            if (adjMatrix.adjMatrix[i][j] == 1 && i != j)
+            {
+                this->PeerVec[i].connectedPeers.push_back(j);
+            }
+        }
+    }
+
+    // for (int i = 0; i < this->numNodes; i++)
+    // {
+    //     cout << i << " -> ";
+    //     for (int j = 0; j < this->PeerVec[i].connectedPeers.size(); j++)
+    //     {
+
+    //         cout << " " << this->PeerVec[i].connectedPeers[j];
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
+}
 
 void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnType)
 {
@@ -68,8 +90,15 @@ void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnTyp
         receiverID = rand() % Simulator.numNodes;
 
     stringstream ss;
-    // ss << Simulator.transactionID_Counter++ << " : " << this->NodeId << " " << TxnType << " " << receiverID << " " << coins << " BTC";
-    if (TxnType == "Inits")
+
+    // A Pays B 60 BTC
+    if (TxnType == "Pays")
+    {
+        ss << this->NodeId << " " << TxnType << " " << receiverID << " " << coins << " BTC";
+    }
+
+    // A Mines 60 BTC or A Inits 60 BTC
+    if (TxnType == "Mines" || TxnType == "Inits")
     {
         receiverID = this->NodeId;
         ss << this->NodeId << " " << TxnType << " "

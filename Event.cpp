@@ -1,5 +1,5 @@
+#include "ClassDeclarations.h"
 #include <iostream>
-#include "Event.h"
 using namespace std;
 
 Event ::Event(float t, string ty)
