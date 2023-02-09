@@ -3,7 +3,10 @@
 #include <chrono>
 #include "Simulator.h"
 #include "Graph.h"
+#include "Event.h"
 using namespace std;
+
+#define MAX_Transactions 500
 
 DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c, float d)
 {
@@ -19,6 +22,8 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c, float d
 
     uniform_real_distribution<double> latency_distribution(0.01, 0.5);
     prop_delay = latency_distribution(generator);
+
+    this->terminationTime = 60000; // 60000 ms = 60 seconds
 }
 
 void DiscreteEventSimulator ::PrintParameters()
@@ -26,15 +31,9 @@ void DiscreteEventSimulator ::PrintParameters()
     cout << numNodes << " " << z_0 << " " << z_1 << " " << interArrivalTime << endl;
 }
 
-Event ::Event(float t, int ty)
-{
-    timeStamp = t;
-    type = ty;
-}
-
 bool compareTimestamp ::operator()(const Event &E1, const Event &E2)
 {
-    if (E1.timeStamp > E2.timeStamp)
+    if (E1.eventTime > E2.eventTime)
         return true;
     else
         return false;
@@ -50,12 +49,27 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix)
         cout << "Recreating : Still Not Connected" << endl;
         adjMatrix.createGraph();
     }
-    for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
+
+    //-- -- -- -- -- -Printing The Adjacency Matrix-- -- -- -- -- -- -- -- -- -- --
+    // for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
+    // {
+    //     for (int j = 0; j < adjMatrix.adjMatrix[i].size(); j++)
+    //     {
+    //         cout << adjMatrix.adjMatrix[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    while (!this->EventQueue.empty())
     {
-        for (int j = 0; j < adjMatrix.adjMatrix[i].size(); j++)
-        {
-            cout << adjMatrix.adjMatrix[i][j] << " ";
-        }
-        cout << endl;
+        cout << this->EventQueue.top().T << endl;
+        this->EventQueue.pop();
     }
+
+    // while (((this->terminationTime > this->globalTime) && !this->EventQueue.empty()) || this->EventQueue.size() > MAX_Transactions)
+    // {
+    //     Event currEvent = this->EventQueue.top();
+    //     this->EventQueue.pop(); // to remove from the EventQueue
+    //     // if(currEvent.type)
+    // }
 }

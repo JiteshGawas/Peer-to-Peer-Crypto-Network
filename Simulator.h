@@ -2,15 +2,22 @@
 #include <iostream>
 #include <queue>
 #include "Graph.h"
+#include "transactions.h"
+#include "Event.h"
 using namespace std;
 
-class Event
-{
-public:
-    float timeStamp;
-    int type;
-    Event(float t, int ty);
-};
+// class Event
+// {
+// public:
+//     float eventTime;
+//     int type;
+//     int senderId, receiverId;
+//     Transaction *T;
+//     // Block *B;
+
+//     Event(float t, int ty);
+//     Event(Transaction &T);
+// };
 
 class compareTimestamp
 {
@@ -24,8 +31,10 @@ public:
     int numNodes;
     float z_0, z_1, prop_delay;
     float globalTime = 0;
-    int interArrivalTime;
+    int interArrivalTime, terminationTime;
+    int transactionID_Counter = 0;
     priority_queue<Event, vector<Event>, compareTimestamp> EventQueue;
+
     DiscreteEventSimulator(int a, float b, float c, float d);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix);

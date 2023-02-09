@@ -3,41 +3,29 @@
 #include "Graph.h"
 #include <set>
 #include <map>
+#include <sstream>
+#include <string>
 #include "Simulator.h"
 #include "Blockchain.h"
 #include "Peers.h"
+// #include "Event.h"
 
-// class Node
-// {
-// public:
-//     int NodeId, NWspeed, CPU_Usage, chainLength;
-//     float balance;
-//     map<int, Block *> Blockchain;
-//     // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
-//     bool isConnected(const Graph &adjMatrix, int peerId)
-//     {
-//         if (adjMatrix.adjMatrix[this->NodeId][peerId])
-//             return true;
-//         else
-//             return false;
-//     }
-// };
-
-Peers::Peers(int numNodes, const DiscreteEventSimulator &Simulator)
+Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
 {
     this->numNodes = numNodes;
+    srand(time(0));
 
     PeerVec.resize(Simulator.numNodes);
     for (int i = 0; i < Simulator.numNodes; i++)
     {
         PeerVec[i].NodeId = i;
-        PeerVec[i].balance = i; // add some random numbers of BTC
+        PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
         PeerVec[i].Blockchain.insert({0, new Block(1, 0)});
+        PeerVec[i].GenerateTransaction(Simulator, "Inits");
     }
 
-    srand(time(0));
     while (z0_Set.size() < (Simulator.z_0 * Simulator.numNodes))
     {
         z0_Set.insert(rand() % Simulator.numNodes); // cout<<"Z0 peers are"<<endl;
@@ -70,3 +58,28 @@ void Peers::PeerInfo()
         cout << PeerVec[i].NodeId << "  " << PeerVec[i].balance << "  " << PeerVec[i].NWspeed << "  " << PeerVec[i].CPU_Usage << endl;
     }
 };
+
+void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnType)
+{
+
+    int coins = rand() % 60;
+    int receiverID = rand() % Simulator.numNodes;
+    while (this->NodeId == receiverID)
+        receiverID = rand() % Simulator.numNodes;
+
+    stringstream ss;
+    // ss << Simulator.transactionID_Counter++ << " : " << this->NodeId << " " << TxnType << " " << receiverID << " " << coins << " BTC";
+    if (TxnType == "Inits")
+    {
+        receiverID = this->NodeId;
+        ss << this->NodeId << " " << TxnType << " "
+           << " " << coins << " BTC"; // A Inits
+    }
+
+    string Message = ss.str();
+    // cout << Message << endl;
+    Transaction *T = new Transaction(Message, Simulator.globalTime);
+    // cout << T << endl;
+    Event E(T);
+    Simulator.EventQueue.push(E);
+}
