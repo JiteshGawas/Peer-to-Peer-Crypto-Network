@@ -15,11 +15,11 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
     for (int i = 0; i < Simulator.numNodes; i++)
     {
         PeerVec[i].NodeId = i;
-        PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50
+        PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50 for each peer
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
         PeerVec[i].Blockchain.insert({0, new Block(1, 0)});
-        PeerVec[i].GenerateTransaction(Simulator, "Inits");
+        // PeerVec[i].GenerateTransaction(Simulator, "Inits");
     }
 
     while (z0_Set.size() < (Simulator.z_0 * Simulator.numNodes))
@@ -63,7 +63,7 @@ void Peers ::setConnectedPeers(Graph &adjMatrix)
         {
             if (adjMatrix.adjMatrix[i][j] == 1 && i != j)
             {
-                this->PeerVec[i].connectedPeers.push_back(j);
+                this->PeerVec[i].connectedPeers.push_back(&PeerVec[j]);
             }
         }
     }
@@ -74,20 +74,21 @@ void Peers ::setConnectedPeers(Graph &adjMatrix)
     //     for (int j = 0; j < this->PeerVec[i].connectedPeers.size(); j++)
     //     {
 
-    //         cout << " " << this->PeerVec[i].connectedPeers[j];
+    //         cout << " " << this->PeerVec[i].connectedPeers[j]->NodeId;
     //     }
     //     cout << endl;
     // }
     // cout << endl;
 }
 
-void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnType)
+void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType)
 {
-
+    // srand(time(0));
     int coins = rand() % 60;
-    int receiverID = rand() % Simulator.numNodes;
+    int receiverID = rand() % Simulator->numNodes;
+
     while (this->NodeId == receiverID)
-        receiverID = rand() % Simulator.numNodes;
+        receiverID = rand() % Simulator->numNodes;
 
     stringstream ss;
 
@@ -106,15 +107,42 @@ void Node ::GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnTyp
     }
 
     string Message = ss.str();
+
     // cout << Message << endl;
     Transaction *T;
     // cout << T << endl;
     if (TxnType == "Pays")
     {
+        T = new Transaction(Message, Simulator->globalTime + Simulator->interArrivalTxnTime);
+        this->AllTransactions[T->txnId] = T;
+
         for (int i = 0; i < this->connectedPeers.size(); i++)
         {
-            T = new Transaction(Message, Simulator.globalTime);
-            Event E(T, "txn_Receive", this->connectedPeers[i], this);
-            Simulator.EventQueue.push(E);
+            Simulator->EventQueue.push(new Event(T, "txn_Receive", this, this->connectedPeers[i], Simulator->prop_delay));
+        }
+        delete T;
+        // std::map<std::string, Transaction>::iterator it = this->AllTransactions.begin();
+
+        // while (it != this->AllTransactions.end())
+        // {
+        //     std::cout << "txnID: " << it->first << ", TxnObject: " << it->second << std::endl;
+        //     ++it;
+        // }
+    }
+}
+
+void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent)
+{
+    if (this->AllTransactions.find(currEvent->T.txnId) == this->AllTransactions.end()) // transactions not in the allTransaction pool
+    {
+        this->AllTransactions[currEvent->T.txnId] = currEvent->T;
+
+        for (int i = 0; i < this->connectedPeers.size(); i++) // send to connected peers except the receiver
+        {
+            if (this->connectedPeers[i]->NodeId == currEvent->senderId) // For ensuring loop-less forwarding
+                continue;
+
+            Simulator->EventQueue.push(new Event(currEvent->T, "txn_Receive", this, this->connectedPeers[i], Simulator->prop_delay));
         }
     }
+}

@@ -11,6 +11,8 @@
 #include <functional>
 using namespace std;
 
+#define MessageSize 1000
+
 //-----------------------------------------Forward Declarations---------------------------------------------------------------
 class DiscreteEventSimulator;
 class Block;
@@ -25,7 +27,7 @@ class Peers;
 class compareTimestamp
 {
 public:
-    bool operator()(const Event &E1, const Event &E2);
+    bool operator()(const Event *E1, const Event *E2);
 };
 
 class DiscreteEventSimulator
@@ -34,14 +36,15 @@ public:
     int numNodes;
     float z_0, z_1, prop_delay;
     float globalTime = 0;
-    int interArrivalTime, terminationTime;
-    int transactionID_Counter = 0;
-    priority_queue<Event, vector<Event>, compareTimestamp> EventQueue;
-    // Event *currEvent;
+    int interArrivalTxnTime, terminationTime;
+    int transaction_Counter = 0;
+
+    priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
+    Event *currEvent;
 
     DiscreteEventSimulator(int a, float b, float c, float d);
     void PrintParameters();
-    void startSimulation(Graph &adjMatrix, Peers PeerNetwork);
+    void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     friend class Peers;
 };
 
@@ -64,9 +67,13 @@ public:
     string txnId, type; // for type : Pays , Mines, Init
     float coins, txnTime;
 
+    Transaction();
     Transaction(string message, float timeStamp);
     string HashFunction(string Message, float timeStamp);
     vector<string> Split(string Message);
+    void operator=(const Transaction *rhs);
+    void operator=(const Transaction &rhs);
+
     // void GenerateTransaction(DiscreteEventSimulator &Simulator);
     // void Print();
 };
@@ -81,14 +88,16 @@ public:
     float eventTime;
     string type;
     int senderId, receiverId;
-    Transaction *T;
+    Transaction T;
     // Block *B;
 
     Event(float t, string ty);
-    Event(Transaction *T); //&T Previously
+    Event(Transaction *T, string EventType, Node *sender, Node *receiver, float prop_delay); //&T Previously
+    Event(Transaction T, string EventType, Node *sender, Node *receiver, float prop_delay);  //&T Previously
+    float calculate_Latency(int, int);
 };
 
-//-----------------------------------------For Graph---------------------------------------------------------------
+//------------------------------------------For Graph---------------------------------------------------------------
 
 class Graph
 {
@@ -112,7 +121,10 @@ class Node
 public:
     int NodeId, NWspeed, CPU_Usage;
     float balance;
-    vector<int> connectedPeers;
+    vector<Node *> connectedPeers;
+
+    // map<string, Transaction *> AllTransactions;
+    map<string, Transaction> AllTransactions;
     map<int, Block *> Blockchain;
     // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
     bool isConnected(const Graph &adjMatrix, int peerId)
@@ -122,7 +134,8 @@ public:
         else
             return false;
     }
-    void GenerateTransaction(DiscreteEventSimulator &Simulator, string TxnType);
+    void GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType);
+    void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
 };
 
 class Peers

@@ -5,6 +5,15 @@
 #include <functional>
 
 using namespace std;
+Transaction ::Transaction()
+{
+    coins = 0;
+    receiverId = 0;
+    senderId = 0;
+    txnId = "0";
+    txnTime = 0;
+    type = "0";
+}
 
 Transaction ::Transaction(string Message, float TimeStamp)
 {
@@ -27,6 +36,26 @@ Transaction ::Transaction(string Message, float TimeStamp)
         this->coins = stof(Splits[2]);
         this->txnTime = TimeStamp; //+ rand() % (10);
     }
+}
+
+void Transaction ::operator=(const Transaction *rhs)
+{
+    coins = rhs->coins;
+    receiverId = rhs->receiverId;
+    senderId = rhs->senderId;
+    txnId = rhs->txnId;
+    txnTime = rhs->txnTime;
+    type = rhs->type;
+}
+
+void Transaction ::operator=(const Transaction &rhs)
+{
+    coins = rhs.coins;
+    receiverId = rhs.receiverId;
+    senderId = rhs.senderId;
+    txnId = rhs.txnId;
+    txnTime = rhs.txnTime;
+    type = rhs.type;
 }
 
 ostream &operator<<(ostream &out, const Transaction &T)
