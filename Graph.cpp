@@ -1,5 +1,5 @@
+#include "ClassDeclarations.h"
 #include <iostream>
-#include "Graph.h"
 #include <vector>
 using namespace std;
 

@@ -1,9 +1,10 @@
+#include "ClassDeclarations.h"
 #include <iostream>
 #include <random>
 #include <chrono>
-#include "Simulator.h"
-#include "Graph.h"
 using namespace std;
+
+// #define MAX_Transactions 5000
 
 DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c, float d)
 {
@@ -15,26 +16,23 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c, float d
     default_random_engine generator(seed);
     exponential_distribution<float> InterArrivalMeanTime(d); // have to take this argument from command line
 
-    interArrivalTime = InterArrivalMeanTime(generator);
+    interArrivalTxnTime = InterArrivalMeanTime(generator);
 
     uniform_real_distribution<double> latency_distribution(0.01, 0.5);
     prop_delay = latency_distribution(generator);
+
+    this->globalTime = 0;
+    this->terminationTime = 60000; // 60000 ms = 60 seconds
 }
 
 void DiscreteEventSimulator ::PrintParameters()
 {
-    cout << numNodes << " " << z_0 << " " << z_1 << " " << interArrivalTime << endl;
+    cout << numNodes << " " << z_0 << " " << z_1 << " " << interArrivalTxnTime << endl;
 }
 
-Event ::Event(float t, int ty)
+bool compareTimestamp ::operator()(const Event *E1, const Event *E2)
 {
-    timeStamp = t;
-    type = ty;
-}
-
-bool compareTimestamp ::operator()(const Event &E1, const Event &E2)
-{
-    if (E1.timeStamp > E2.timeStamp)
+    if (E1->eventTime > E2->eventTime)
         return true;
     else
         return false;
@@ -42,20 +40,60 @@ bool compareTimestamp ::operator()(const Event &E1, const Event &E2)
 
 // added comment
 
-void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix)
+void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwork)
 {
+    srand(time(0));
     adjMatrix.createGraph();
     while (!adjMatrix.isConnected())
     {
         cout << "Recreating : Still Not Connected" << endl;
         adjMatrix.createGraph();
     }
-    for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
+
+    //-- -- -- -- -- -Printing The Adjacency Matrix-- -- -- -- -- -- -- -- -- -- --
+    // for (int i = 0; i < adjMatrix.adjMatrix.size(); i++)
+    // {
+    //     for (int j = 0; j < adjMatrix.adjMatrix[i].size(); j++)
+    //     {
+    //         cout << adjMatrix.adjMatrix[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    PeerNetwork.setConnectedPeers(adjMatrix);
+    // while (!this->EventQueue.empty())
+    // {
+    //        //     cout << this->EventQueue.top().T << endl;
+    //     this->EventQueue.pop();
+    // }
+    int i = 1;
+    // cout << "Outside" << endl;
+    while (this->terminationTime > this->globalTime)
     {
-        for (int j = 0; j < adjMatrix.adjMatrix[i].size(); j++)
+        // cout << "GenerateDone" << endl;
+        PeerNetwork.PeerVec[rand() % this->numNodes].GenerateTransaction(this, "Pays"); // randomly Generating Transactions between interArrival Txn Time
+
+        // if (!(this->EventQueue.size() < MAX_Transactions) || this->EventQueue.empty())
+        //     break;
+        currEvent = this->EventQueue.top();
+        this->EventQueue.pop();
+
+        if (currEvent->type == "txn_Receive")
         {
-            cout << adjMatrix.adjMatrix[i][j] << " ";
+            // cout << "InReceive" << endl;
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveTransaction(this, currEvent);
+            // break;
         }
-        cout << endl;
+
+        // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " " << currEvent->T << endl;
+        // cout << currEvent->eventTime << " " << this->globalTime << endl;
+        this->globalTime = currEvent->eventTime;
+
+  
+        delete currEvent;
+        if (i++ == 1000)
+            break;
     }
+
+    PeerNetwork.PeerVec[rand() % this->numNodes].GenerateBlock(this);
+
 }

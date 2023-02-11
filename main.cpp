@@ -4,14 +4,11 @@
 #include <set>
 #include <vector>
 #include <time.h>
-#include "Graph.h"
-#include "Simulator.h"
-#include "Peers.h"
-#include "transactions.h"
+#include "ClassDeclarations.h"
 
 using namespace std;
 
-#define MAX_PEERS 20
+#define MAX_PEERS 15
 
 //-------------------------------------------------Main Begins----------------------------------------------------------------------
 
@@ -24,7 +21,7 @@ int main()
 
     Simulator.PrintParameters();
     // Peers.PeerInfo();
-    Simulator.startSimulation(adjMatrix);
+    Simulator.startSimulation(adjMatrix, Peers);
 }
 
 // Transaction T("27 : 89 Mines 40 69.0 BTC", 0.8);
