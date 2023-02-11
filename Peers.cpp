@@ -18,10 +18,11 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50 for each peer
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
-        PeerVec[i].Blockchain.insert({0, new Block(1, 0)});
+        PeerVec[i].Blockchain.insert({0, new Block(1, 0)}); // Genesis Block
         // PeerVec[i].GenerateTransaction(Simulator, "Inits");
     }
 
+    // Randomly Setting z0 % Nodes to have slowNWSpeed
     while (z0_Set.size() < (Simulator.z_0 * Simulator.numNodes))
     {
         z0_Set.insert(rand() % Simulator.numNodes); // cout<<"Z0 peers are"<<endl;
@@ -31,15 +32,28 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         PeerVec[*it].NWspeed = 0;
     }
 
+    // Randomly Setting z1 % Nodes to be of low_cpu
     while (z1_Set.size() < (Simulator.z_1 * Simulator.numNodes))
         z1_Set.insert(rand() % Simulator.numNodes);
     for (auto it = z1_Set.begin(); it != z1_Set.end(); ++it)
         PeerVec[*it].CPU_Usage = 0;
+
+    // Distributing Hashing Powes Between Peers Such That "High_Cpu" Nodes Have 10 times more hashing power than "Low_Cpu" Nodes
+    this->slow_HashPower = 1 / ((this->numNodes * Simulator.z_1) + (this->numNodes - (this->numNodes * Simulator.z_1)) * 10);
+
+    for (int i = 0; i < Simulator.numNodes; i++)
+    {
+        if (this->PeerVec[i].CPU_Usage == 0) // i.e It is a low_CPU Node
+            this->PeerVec[i].hashing_power = this->slow_HashPower;
+
+        else
+            this->PeerVec[i].hashing_power = this->slow_HashPower * 10;
+    }
 }
 
 void Peers::PeerInfo()
 {
-    cout << "PeerId  Balance  NWSpeed  CPU_Usage" << endl;
+    cout << "PeerId  Balance  NWSpeed  CPU_Usage Hashing Power" << endl;
     // cout << "BlockID, PrevHash, Blockhash" << endl;
     for (int i = 0; i < numNodes; i++)
     {
@@ -51,8 +65,17 @@ void Peers::PeerInfo()
         //     std::cout << "BlockId: " << it->second->blockId << ", PrevHash: " << it->second->PrevHash << ", BlockHash: " << it->second->BlockHash << std::endl;
         //     ++it;
         // }
-        cout << PeerVec[i].NodeId << "  " << PeerVec[i].balance << "  " << PeerVec[i].NWspeed << "  " << PeerVec[i].CPU_Usage << endl;
+        cout << PeerVec[i].NodeId << "\t " << PeerVec[i].balance << "\t  " << PeerVec[i].NWspeed << "\t  " << PeerVec[i].CPU_Usage << "\t " << PeerVec[i].hashing_power << endl;
     }
+
+    // To Check Sum Of Hashing Powers Of All The Nodes = 1
+    float sum = 0;
+    for (int i = 0; i < numNodes; i++)
+    {
+        sum += this->PeerVec[i].hashing_power;
+    }
+    if (sum == 1)
+        cout << "Hashing Power Distributed Correctly" << endl;
 }
 
 void Peers ::setConnectedPeers(Graph &adjMatrix)

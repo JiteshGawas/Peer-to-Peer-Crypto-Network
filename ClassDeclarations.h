@@ -121,6 +121,7 @@ class Node
 public:
     int NodeId, NWspeed, CPU_Usage;
     float balance;
+    float hashing_power;
     vector<Node *> connectedPeers;
 
     // map<string, Transaction *> AllTransactions;
@@ -144,6 +145,7 @@ public:
     vector<Node> PeerVec; // Vector of PeerVec
     int numNodes;
     set<int> z0_Set, z1_Set;
+    float slow_HashPower;
 
     Peers(int numNodes, DiscreteEventSimulator &Simulator);
     void PeerInfo();
