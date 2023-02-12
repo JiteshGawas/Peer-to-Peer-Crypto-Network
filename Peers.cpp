@@ -19,8 +19,8 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50 for each peer
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
-        PeerVec[i].Blockchain.insert({0, new Block(1, 0)}); // Genesis Block
-        // PeerVec[i].GenerateTransaction(Simulator, "Inits");
+        PeerVec[i].Blockchain.insert({1, new Block(1, 0)}); // Genesis Block
+        PeerVec[i].lastBlockId = 1;                         // Which Is Genesis Block
     }
 
     // Randomly Setting z0 % Nodes to have slowNWSpeed
@@ -50,6 +50,15 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         else
             this->PeerVec[i].hashing_power = this->slow_HashPower * 10;
     }
+
+    for (int i = 0; i < this->numNodes; i++)
+    {
+
+        for (int j = 0; j < this->numNodes; j++)
+        {
+            PeerVec[i].Blockchain[1]->NodeBalances.push_back(PeerVec[j].balance);
+        }
+    }
 }
 
 void Peers::PeerInfo()
@@ -67,6 +76,12 @@ void Peers::PeerInfo()
         //     ++it;
         // }
         cout << PeerVec[i].NodeId << "\t " << PeerVec[i].balance << "\t  " << PeerVec[i].NWspeed << "\t  " << PeerVec[i].CPU_Usage << "\t " << PeerVec[i].hashing_power << endl;
+        cout << "Genesis Block Balances For Node " << i << endl;
+        for (int j = 0; j < this->numNodes; j++)
+        {
+            cout << PeerVec[i].Blockchain[1]->NodeBalances[j] << " ";
+        }
+        cout << endl;
     }
 
     // To Check Sum Of Hashing Powers Of All The Nodes = 1
@@ -159,6 +174,7 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
         }
 
         this->AllTransactions[T->txnId] = T;
+        this->PendingTransaction[T->txnId] = T;
 
         for (int i = 0; i < this->connectedPeers.size(); i++)
         {
@@ -187,6 +203,7 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
     if (this->AllTransactions.find(currEvent->T.txnId) == this->AllTransactions.end()) // transactions not in the allTransaction pool
     {
         this->AllTransactions[currEvent->T.txnId] = currEvent->T;
+        this->PendingTransaction[currEvent->T.txnId] = currEvent->T;
 
         for (int i = 0; i < this->connectedPeers.size(); i++) // send to connected peers except the receiver
         {
@@ -195,5 +212,39 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
 
             Simulator->EventQueue.push(new Event(currEvent->T, "txn_Receive", this, this->connectedPeers[i], Simulator->prop_delay));
         }
+    }
+}
+
+void Node ::GenerateBlock(DiscreteEventSimulator *Simulator)
+{
+    Block *B = new Block(this->lastBlockId + 1, this->lastBlockId);
+    int count = 10;
+    B->blockId = this->NodeId;
+    cout << "Block is Mined by the Node " << B->blockId << endl;
+    B->NodeBalances = this->Blockchain[lastBlockId]->NodeBalances;
+    // cout<<"I am here"<<endl;
+
+    for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end(); ++itr)
+    {
+        if (B->NodeBalances[itr->second.senderId] > itr->second.coins) // Balance of sender > Txn sender coins
+        {
+            B->Transactions.push_back(itr->second);
+            count--;
+            B->NodeBalances[itr->second.senderId] -= itr->second.coins;
+            B->NodeBalances[itr->second.receiverId] += itr->second.coins;
+            // this->PendingTransaction.erase(itr->first);
+        }
+
+        if (count == 0)
+            break;
+    }
+    // cout<<"Working"<<endl;
+
+    // for (auto i = B->NodeBalances.begin(); i != B->NodeBalances.end(); ++i)
+    //     cout << *i << " ";
+
+    for (int i = 0; i < B->Transactions.size(); i++)
+    {
+        cout << B->Transactions[i] << endl;
     }
 }

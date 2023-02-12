@@ -91,4 +91,5 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         // if (this->transaction_Counter > MAX_Transactions)
         //     break;
     }
+    PeerNetwork.PeerVec[rand() % this->numNodes].GenerateBlock(this);
 }

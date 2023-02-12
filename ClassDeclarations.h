@@ -57,6 +57,7 @@ public:
     vector<Transaction> Transactions;
     vector<float> NodeBalances;
     Block(int blockID, int PrevHash);
+    int minedId;
 };
 
 //-----------------------------------------For transactions---------------------------------------------------------------
@@ -119,13 +120,15 @@ public:
 class Node
 {
 public:
-    int NodeId, NWspeed, CPU_Usage;
+    int NodeId, NWspeed, CPU_Usage, lastBlockId;
     float balance;
     float hashing_power;
     vector<Node *> connectedPeers;
 
     // map<string, Transaction *> AllTransactions;
     map<string, Transaction> AllTransactions;
+    map<string, Transaction> PendingTransaction;
+
     map<int, Block *> Blockchain;
     // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
     bool isConnected(const Graph &adjMatrix, int peerId)
@@ -138,6 +141,7 @@ public:
     void GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType);
     void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
     float RandomInterArrivalTxnTime();
+    void GenerateBlock(DiscreteEventSimulator *Simulator);
 };
 
 class Peers
