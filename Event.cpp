@@ -3,10 +3,13 @@
 #include <chrono>
 using namespace std;
 
-Event ::Event(float t, string ty)
+Event ::Event(Node *Generator, float t, string ty)
 {
     eventTime = t;
     type = ty;
+    senderId = Generator->NodeId;
+    receiverId = -1;
+    // T = NULL;
 }
 // class compareTimestamp
 // {

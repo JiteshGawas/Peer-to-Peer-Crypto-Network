@@ -9,14 +9,13 @@
 using namespace std;
 
 #define MAX_PEERS 20
-#define InterArrivalTimeMean 0.1
 
 //-------------------------------------------------Main Begins----------------------------------------------------------------------
 
 int main(int argc, char *argv[])
 {
 
-    DiscreteEventSimulator Simulator(MAX_PEERS, stof(argv[1]), stof(argv[2]), InterArrivalTimeMean);
+    DiscreteEventSimulator Simulator(MAX_PEERS, stof(argv[1]), stof(argv[2])); // InterArrivalTimeMean);
     Graph adjMatrix(Simulator.numNodes, 4, 8);
     Peers Peers(Simulator.numNodes, Simulator); // object of class having peer having vector of nodes
 

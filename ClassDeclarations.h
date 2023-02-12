@@ -36,16 +36,16 @@ public:
     int numNodes;
     float z_0, z_1, prop_delay;
     float globalTime = 0;
-    int interArrivalTxnTime, terminationTime;
+    int terminationTime;
     int transaction_Counter = 0;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
 
-    DiscreteEventSimulator(int a, float b, float c, float d);
+    DiscreteEventSimulator(int a, float b, float c);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
-    friend class Peers;
+    friend class Node;
 };
 
 //-----------------------------------------For Blocks---------------------------------------------------------------
@@ -91,7 +91,7 @@ public:
     Transaction T;
     // Block *B;
 
-    Event(float t, string ty);
+    Event(Node *, float t, string ty);
     Event(Transaction *T, string EventType, Node *sender, Node *receiver, float prop_delay); //&T Previously
     Event(Transaction T, string EventType, Node *sender, Node *receiver, float prop_delay);  //&T Previously
     float calculate_Latency(int, int);
@@ -137,6 +137,7 @@ public:
     }
     void GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType);
     void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
+    float RandomInterArrivalTxnTime();
 };
 
 class Peers

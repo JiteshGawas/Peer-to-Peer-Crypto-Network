@@ -1,6 +1,7 @@
 #include "ClassDeclarations.h"
 #include <iostream>
 #include <random>
+#include <chrono>
 #include <set>
 #include <map>
 #include <sstream>
@@ -104,10 +105,20 @@ void Peers ::setConnectedPeers(Graph &adjMatrix)
     // cout << endl;
 }
 
+float Node ::RandomInterArrivalTxnTime()
+{
+    int seed = chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine generator(seed);
+
+    exponential_distribution<float> InterArrivalMeanTime(0.02); // 1/20 i.e exp dist with mean as 20 ms
+
+    return InterArrivalMeanTime(generator);
+}
+
 void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType)
 {
     // srand(time(0));
-    int coins = rand() % 60;
+    int coins = 5 + rand() % 30;
     int receiverID = rand() % Simulator->numNodes;
 
     while (this->NodeId == receiverID)
@@ -136,14 +147,26 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
     // cout << T << endl;
     if (TxnType == "Pays")
     {
-        T = new Transaction(Message, Simulator->globalTime + Simulator->interArrivalTxnTime);
+        if (Simulator->transaction_Counter == 0)
+        {
+            // cout << "Initial Transaction" << endl;
+            T = new Transaction(Message, 0);
+        }
+        else
+        {
+            // cout << "Transaction From Inside While" << endl;
+            T = new Transaction(Message, Simulator->globalTime + RandomInterArrivalTxnTime());
+        }
+
         this->AllTransactions[T->txnId] = T;
 
         for (int i = 0; i < this->connectedPeers.size(); i++)
         {
             Simulator->EventQueue.push(new Event(T, "txn_Receive", this, this->connectedPeers[i], Simulator->prop_delay));
         }
+
         delete T;
+
         // std::map<std::string, Transaction>::iterator it = this->AllTransactions.begin();
 
         // while (it != this->AllTransactions.end())
@@ -151,6 +174,11 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
         //     std::cout << "txnID: " << it->first << ", TxnObject: " << it->second << std::endl;
         //     ++it;
         // }
+        if (Simulator->transaction_Counter != 0)
+            Simulator->transaction_Counter++;
+        // cout << Simulator->transaction_Counter << endl;
+
+        Simulator->EventQueue.push(new Event(this, Simulator->globalTime + RandomInterArrivalTxnTime(), "txn_Generate"));
     }
 }
 

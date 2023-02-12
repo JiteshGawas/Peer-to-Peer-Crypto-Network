@@ -3,3 +3,5 @@ Build/*
 DeletedLibraries/*
 .vscode/*
 .editorconfig
+out.txt
+
