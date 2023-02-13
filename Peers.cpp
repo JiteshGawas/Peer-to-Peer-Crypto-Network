@@ -18,7 +18,8 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50 for each peer
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
-        PeerVec[i].Blockchain.insert({1, new Block(1, 0)}); 
+        Block B(1,0);
+        PeerVec[i].Blockchain.insert({1, B}); 
         PeerVec[i].lastBlockId = 1;
 
         // PeerVec[i].GenerateTransaction(Simulator, "Inits");
@@ -44,7 +45,7 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         
         for(int j=0; j<this->numNodes; j++)
         {   
-            PeerVec[i].Blockchain[1]->NodeBalances.push_back(PeerVec[j].balance);
+            PeerVec[i].Blockchain[1].NodeBalances.push_back(PeerVec[j].balance);
             
         }
         
@@ -71,7 +72,7 @@ void Peers::PeerInfo()
         cout << "Genesis Block Balances For Node " << i<<endl;
         for(int j=0; j<this->numNodes; j++)
         {
-            cout<<PeerVec[i].Blockchain[1]->NodeBalances[j]<<" ";
+            cout<<PeerVec[i].Blockchain[1].NodeBalances[j]<<" ";
         }
         cout<<endl;
 
@@ -175,11 +176,11 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
 
 void Node ::GenerateBlock(DiscreteEventSimulator *Simulator)
 {
-    Block *B= new Block(this->lastBlockId+1, this->lastBlockId);
-    int count=10;
+    Block *B= new Block(this->lastBlockId+1, this->lastBlockId);   //Create new Block
+    int count=10;    //10 transactions for check
     B->blockId = this->NodeId;
-    cout<<"Block is Mined by the Node "<<B->blockId<<endl;
-    B->NodeBalances = this->Blockchain[lastBlockId]->NodeBalances;
+    cout<<"Block is Mined by the Node "<<B->blockId<<endl;   //Block is mined by Id 
+    B->NodeBalances = this->Blockchain[lastBlockId].NodeBalances;
     // cout<<"I am here"<<endl;
 
     for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end(); ++itr) {
@@ -207,5 +208,116 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator)
     }
 
     cout<<endl;
+    
+    this->BroadcastBlock(Simulator,B);
 
+}
+
+// m.find(ch) != m.end()
+
+void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator , Event *currEvent)
+{
+    int flag = 0;
+    if( this->AllBlocks.find(currEvent->B.blockId) != this->AllBlocks.end() )    //Block Id is allready present with the node 
+    {
+        return;
+    }
+    this->AllBlocks[currEvent->B.blockId] = true;    //If not present mark it present now
+
+    int parentHash = currEvent->B.PrevHash;   //Calculate parent hash
+    vector<float> tempNodeBalance = this->Blockchain[currEvent->B.PrevHash].NodeBalances; //wrong
+
+    // int count = currEvent->B.Transactions.size();
+
+    if( this->Blockchain.find(parentHash) != this->Blockchain.end())     //Parent is found in blockchain
+    {
+        // int count = currEvent->B.Transactions.size();
+
+        for (int i = 0; i <currEvent->B.Transactions.size(); ++i)     //Check if all transactions are valid
+        {
+         //Balance of sender > Txn sender coins
+        
+                tempNodeBalance[currEvent->B.Transactions[i].senderId] -= currEvent->B.Transactions[i].coins;
+                tempNodeBalance[currEvent->B.Transactions[i].receiverId] += currEvent->B.Transactions[i].coins;
+                // this->PendingTransaction.erase(itr->first);
+        }
+
+        for(int i =0; i<tempNodeBalance.size(); i++)
+        {
+            if(tempNodeBalance[i] == currEvent->B.NodeBalances[i])
+            {
+                continue;
+            }
+            else{
+                flag = 1;
+                break;            
+            }
+        }
+        if(flag ==0)    // Block is valid
+        {
+            this->Blockchain.insert({currEvent->B.blockId, currEvent->B});  // Added to Blockchain
+            //Lenght++ to be added
+
+              
+        }
+        //search if this newly added block is a parent of some block which are left in nonverifiedblocks
+        if( this->pendingBlocks.find(currEvent->B.blockId) != this->pendingBlocks.end())
+        {
+            //verify and add this block to blockchain 
+            tempNodeBalance = currEvent->B.NodeBalances;
+
+            for (int i = 0; i < this->pendingBlocks[currEvent->B.blockId].Transactions.size() ; i++)     //Check if all transactions are valid
+            {
+            //Balance of sender > Txn sender coins
+            
+                    tempNodeBalance[this->pendingBlocks[currEvent->B.blockId].Transactions[i].senderId] -= this->pendingBlocks[currEvent->B.blockId].Transactions[i].coins;
+                    tempNodeBalance[this->pendingBlocks[currEvent->B.blockId].Transactions[i].receiverId] += this->pendingBlocks[currEvent->B.blockId].Transactions[i].coins;
+                    // this->PendingTransaction.erase(itr->first);
+            }
+
+            for(int i =0; i<tempNodeBalance.size(); i++)
+            {
+                if(tempNodeBalance[i] == this->pendingBlocks[currEvent->B.blockId].NodeBalances[i])
+                {
+                    continue;
+                }
+                else{
+                    flag = 1;
+                    break;            
+                }
+            }
+            if(flag ==0)    // Block is valid
+            {
+                this->Blockchain.insert({this->pendingBlocks[currEvent->B.blockId].blockId , this->pendingBlocks[currEvent->B.blockId]});  // Added to Blockchain
+                //Lenght++ to be added
+
+                
+            }
+
+            
+        }
+    }
+
+    else    // Parent not found in blockchain
+    {
+        this->pendingBlocks.insert({currEvent->B.PrevHash, currEvent->B});
+
+    }
+}
+
+
+void Node ::BroadcastBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
+{
+    for (int i = 0; i < this->connectedPeers.size(); i++)
+    {
+        Simulator->EventQueue.push(new Event(currEvent->B, Simulator->globalTime + Simulator->prop_delay, "ReceiveBlock", this, this->connectedPeers[i]));
+    }
+}
+
+void Node ::BroadcastBlock(DiscreteEventSimulator *Simulator, Block *B)
+{
+    for (int i = 0; i < this->connectedPeers.size(); i++)
+    {
+        Simulator->EventQueue.push(new Event(B, Simulator->globalTime + Simulator->prop_delay, "ReceiveBlock", this, this->connectedPeers[i]));
+    }
 }

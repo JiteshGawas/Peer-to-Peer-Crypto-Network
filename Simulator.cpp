@@ -60,11 +60,13 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
     //     cout << endl;
     // }
     PeerNetwork.setConnectedPeers(adjMatrix);
+    
     // while (!this->EventQueue.empty())
     // {
     //        //     cout << this->EventQueue.top().T << endl;
     //     this->EventQueue.pop();
     // }
+    
     int i = 1;
     // cout << "Outside" << endl;
     while (this->terminationTime > this->globalTime)
@@ -84,16 +86,56 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
             // break;
         }
 
+        if (currEvent->type == "ReceiveBlock")
+        {
+            // cout << "InReceive" << endl;
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this,currEvent);
+            // break;
+        }
+
         // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " " << currEvent->T << endl;
         // cout << currEvent->eventTime << " " << this->globalTime << endl;
         this->globalTime = currEvent->eventTime;
 
   
         delete currEvent;
-        if (i++ == 1000)
+        if (i++ == 10000)
             break;
     }
 
-    PeerNetwork.PeerVec[rand() % this->numNodes].GenerateBlock(this);
+    PeerNetwork.PeerVec[6].GenerateBlock(this);
+    // this->globalTime = 0;
+    while (this->terminationTime > this->globalTime)
+    {
+        cout << "DusreWhileMe" << endl;
+        PeerNetwork.PeerVec[rand() % this->numNodes].GenerateTransaction(this, "Pays"); // randomly Generating Transactions between interArrival Txn Time
+
+        // if (!(this->EventQueue.size() < MAX_Transactions) || this->EventQueue.empty())
+        //     break;
+        currEvent = this->EventQueue.top();
+        this->EventQueue.pop();
+
+        
+        if (currEvent->type == "ReceiveBlock")
+        {
+            // cout << "InReceive" << endl;
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this,currEvent);
+            // break;
+        }
+
+        // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " " << currEvent->T << endl;
+        // cout << currEvent->eventTime << " " << this->globalTime << endl;
+        this->globalTime = currEvent->eventTime;
+
+  
+        delete currEvent;
+        if (i++ == 20000)
+            break;
+    }
+    
+    for(auto itr = PeerNetwork.PeerVec[6].Blockchain.begin(); itr!= PeerNetwork.PeerVec[6].Blockchain.end(); itr++)
+    {
+        cout<<"Prev Block Id : "<<itr->second.PrevHash<<"  BlockID : "<<itr->first<<endl;
+    }
 
 }

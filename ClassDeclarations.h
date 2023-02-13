@@ -11,7 +11,7 @@
 #include <functional>
 using namespace std;
 
-#define MessageSize 1000
+#define MessageSize 8192
 
 //-----------------------------------------Forward Declarations---------------------------------------------------------------
 class DiscreteEventSimulator;
@@ -58,7 +58,12 @@ public:
     vector<Transaction> Transactions;
     vector<float> NodeBalances;
     Block(int blockID, int PrevHash);
-    int MinedId;
+    int minedId;
+
+    void operator=(const Block *rhs);
+    void operator=(const Block &rhs);
+    Block();
+
     
 };
 
@@ -88,16 +93,17 @@ ostream &operator<<(ostream &out, const Transaction *T);
 class Event
 {
 public:
+    int senderId, receiverId;
     float eventTime;
     string type;
-    int senderId, receiverId;
     Transaction T;
-    // Block *B;
-
-    Event(float t, string ty);
+    Block B;
+    Event(int NodeId, float eventTime, string type);
     Event(Transaction *T, string EventType, Node *sender, Node *receiver, float prop_delay); //&T Previously
     Event(Transaction T, string EventType, Node *sender, Node *receiver, float prop_delay);  //&T Previously
-    float calculate_Latency(int, int);
+    Event(Block B, float eventTime, string EventType, Node *sender, Node *receiver);
+    Event(Block *B, float eventTime, string EventType, Node *sender, Node *receiver);
+    float calculate_Latency(int senderNWspeed, int receiverNWspeed, int numTransaction = 1);
 };
 
 //------------------------------------------For Graph---------------------------------------------------------------
@@ -128,9 +134,14 @@ public:
 
     // map<string, Transaction *> AllTransactions;
     map<string, Transaction> AllTransactions;
-    map<int, Block *> Blockchain;
+    map<int, Block > Blockchain;
     map<string, Transaction> PendingTransaction;
+
+
+    map<int, Block> pendingBlocks;
     // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
+
+    map<int, bool> AllBlocks;
     bool isConnected(const Graph &adjMatrix, int peerId)
     {
         if (adjMatrix.adjMatrix[this->NodeId][peerId])
@@ -142,6 +153,10 @@ public:
     void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
 
     void GenerateBlock(DiscreteEventSimulator *Simulator);
+
+    void BroadcastBlock(DiscreteEventSimulator *Simulator, Event *currEvent);
+    void BroadcastBlock(DiscreteEventSimulator *Simulator, Block *B);
+    void ReceiveBlock(DiscreteEventSimulator *Simulator , Event *currEvent);
 
 };
 
