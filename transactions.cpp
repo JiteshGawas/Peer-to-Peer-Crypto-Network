@@ -105,3 +105,14 @@ string Transaction ::HashFunction(string Message, float timeStamp)
     string HashMessage = Message + " " + to_string(timeStamp);
     return to_string(HashProvider(HashMessage));
 }
+
+string Transaction ::getMessage()
+{
+    string message;
+    if (this->type == "Pays")
+        message = this->txnId + " : " + to_string(this->senderId) + " " + this->type + " " + to_string(this->receiverId) + " " + to_string(this->coins) + " BTC.";
+    if (this->type == "Mines")
+        message = this->txnId + " : " + to_string(this->senderId) + " " + this->type + " " + to_string(this->coins) + " BTC.";
+
+    return message;
+}

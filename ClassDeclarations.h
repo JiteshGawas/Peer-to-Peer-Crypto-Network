@@ -11,8 +11,6 @@
 #include <functional>
 using namespace std;
 
-#define MessageSize 1000
-
 //-----------------------------------------Forward Declarations---------------------------------------------------------------
 class DiscreteEventSimulator;
 class Block;
@@ -38,6 +36,7 @@ public:
     float globalTime = 0;
     int terminationTime;
     int transaction_Counter = 0;
+    int blockInterArrivalMeanTime;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
@@ -54,10 +53,15 @@ class Block
 {
 public:
     int blockId, PrevHash, BlockHash;
+    int minedId, blockLevel = 0;
     vector<Transaction> Transactions;
     vector<float> NodeBalances;
-    Block(int blockID, int PrevHash);
-    int minedId;
+
+    Block();
+    Block(int blockID, int PrevHash, int blockLevel);
+
+    void operator=(const Block *rhs);
+    void operator=(const Block &rhs);
 };
 
 //-----------------------------------------For transactions---------------------------------------------------------------
@@ -71,6 +75,7 @@ public:
     Transaction();
     Transaction(string message, float timeStamp);
     string HashFunction(string Message, float timeStamp);
+    string getMessage();
     vector<string> Split(string Message);
     void operator=(const Transaction *rhs);
     void operator=(const Transaction &rhs);
@@ -86,16 +91,17 @@ ostream &operator<<(ostream &out, const Transaction *T);
 class Event
 {
 public:
+    int senderId, receiverId;
     float eventTime;
     string type;
-    int senderId, receiverId;
     Transaction T;
-    // Block *B;
-
-    Event(Node *, float t, string ty);
+    Block B;
+    Event(int NodeId, float eventTime, string type);
     Event(Transaction *T, string EventType, Node *sender, Node *receiver, float prop_delay); //&T Previously
     Event(Transaction T, string EventType, Node *sender, Node *receiver, float prop_delay);  //&T Previously
-    float calculate_Latency(int, int);
+    Event(Block B, float eventTime, string EventType, Node *sender, Node *receiver);
+    Event(Block *B, float eventTime, string EventType, Node *sender, Node *receiver);
+    float calculate_Latency(int senderNWspeed, int receiverNWspeed, int numTransaction = 1);
 };
 
 //------------------------------------------For Graph---------------------------------------------------------------
@@ -120,17 +126,19 @@ public:
 class Node
 {
 public:
-    int NodeId, NWspeed, CPU_Usage, lastBlockId;
+    int NodeId, NWspeed, CPU_Usage, lastBlockId; // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
     float balance;
     float hashing_power;
+    int blockChainLength = 0;
     vector<Node *> connectedPeers;
 
     // map<string, Transaction *> AllTransactions;
     map<string, Transaction> AllTransactions;
     map<string, Transaction> PendingTransaction;
+    map<int, Block> Blockchain;
+    map<int, Block> PendingBlocks;
+    map<int, bool> ReceivedBlocks;
 
-    map<int, Block *> Blockchain;
-    // NWspeed : 0 (Slow) 1(Fast) | CPU_Usage = 0 (low_cpu) 1(high_cpu)
     bool isConnected(const Graph &adjMatrix, int peerId)
     {
         if (adjMatrix.adjMatrix[this->NodeId][peerId])
@@ -141,14 +149,19 @@ public:
     void GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType);
     void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
     float RandomInterArrivalTxnTime();
-    void GenerateBlock(DiscreteEventSimulator *Simulator);
+    float RandomInterArrivalBlockTime(float InterArrivalMean);
+    void GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter);
+    void MineBlock(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
+    void BroadcastBlock(DiscreteEventSimulator *Simulator, Event *E);
+    void ReceiveBlock(DiscreteEventSimulator *Simulator, Event *E);
+    bool VerifyAddBlock(Block B); // true if block verified and successfullly, false otherwise
 };
 
 class Peers
 {
 public:
     vector<Node> PeerVec; // Vector of PeerVec
-    int numNodes;
+    int numNodes, BlockCounter;
     set<int> z0_Set, z1_Set;
     float slow_HashPower;
 

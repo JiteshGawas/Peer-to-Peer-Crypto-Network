@@ -21,6 +21,7 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c)
     this->globalTime = 0;
     this->transaction_Counter = 0;
     this->terminationTime = 60000; // 60000 ms = 60 seconds
+    blockInterArrivalMeanTime = 100;
 }
 
 void DiscreteEventSimulator ::PrintParameters()
@@ -50,8 +51,11 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
     PeerNetwork.setConnectedPeers(adjMatrix);
 
-    for (int i = 0; i < this->numNodes; i++) // Initial Transactions For All Nodes
+    for (int i = 0; i < this->numNodes; i++) // Initial Transactions & createBlock Event For All Nodes
+    {
         PeerNetwork.PeerVec[i].GenerateTransaction(this, "Pays");
+        this->EventQueue.push(new Event(i, 50.0 + PeerNetwork.PeerVec[i].RandomInterArrivalBlockTime(blockInterArrivalMeanTime), "createBlock"));
+    }
 
     this->transaction_Counter = this->numNodes;
     int i = 1;
@@ -66,6 +70,12 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         this->EventQueue.pop();
         this->globalTime = currEvent->eventTime;
 
+        // if (i++ > 500)
+        // {
+        //     cout << "Transaction Id : " << currEvent->T.txnId << " Event Sender Receiver : " << currEvent->senderId << "->" << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << endl;
+        //     continue;
+        // }
+
         if (currEvent->type == "txn_Generate") // To Generate Transactions after every interArrivalTxnTime Step
         {
             PeerNetwork.PeerVec[currEvent->senderId].GenerateTransaction(this, "Pays");
@@ -79,17 +89,45 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
         }
+
+        if (currEvent->type == "createBlock")
+        {
+            cout << "CreateBlock" << endl;
+            PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
+            // break;
+            // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
+        }
+
+        if (currEvent->type == "MineBlock")
+        {
+            cout << "MineBlock" << endl;
+            PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
+            // break;
+            // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
+        }
+        if (currEvent->type == "ReceiveBlock")
+        {
+            cout << "ReceiveBlock" << endl;
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent);
+            // break;
+            // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
+        }
         // cout << "Transaction Id : " << currEvent->T.txnId << " Event Sender Receiver : " << currEvent->senderId << "->" << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << endl;
 
         delete currEvent;
 
-        if (i++ == 1000)
-            break;
+        // if (i++ == 10000) //
+        //     break;
 
         if (this->terminationTime < this->globalTime)
             break;
         // if (this->transaction_Counter > MAX_Transactions)
         //     break;
     }
-    PeerNetwork.PeerVec[rand() % this->numNodes].GenerateBlock(this);
+
+    while (!this->EventQueue.empty())
+    {
+        cout << this->EventQueue.top()->type << endl;
+        this->EventQueue.pop();
+    }
 }
