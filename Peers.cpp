@@ -309,12 +309,15 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
     if (this->Blockchain.find(parentHash) != this->Blockchain.end()) // Parent is found in blockchain
     {
         flag = this->VerifyAddBlock(currEvent->B); // Parent Found so verify & add Block
-
+        if (flag)
+            this->BroadcastBlock(Simulator, currEvent);
         // The Block was verified and added successfully
         Block TempBlock = currEvent->B;
         while (flag && (this->PendingBlocks.find(TempBlock.blockId) != this->PendingBlocks.end()))
         {
             flag = this->VerifyAddBlock(this->PendingBlocks[TempBlock.blockId]);
+            if (flag)
+                this->BroadcastBlock(Simulator, currEvent);
             TempBlock = this->PendingBlocks[TempBlock.blockId];
             // verify and add this block to blockchain
         }

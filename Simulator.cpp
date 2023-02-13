@@ -125,33 +125,34 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         //     break;
     }
 
-    // for (int i = 0; i < this->numNodes; i++)
-    // {
-    //     cout << "---------------------------------Blockchain At Peer " << i + 1 << "------------------------------------------" << endl;
-    //     auto itr = PeerNetwork.PeerVec[i].Blockchain.begin();
-    //     while (itr != PeerNetwork.PeerVec[i].Blockchain.end())
-    //     {
-    //         cout << "BlockId : " << itr->first << " ParentId : " << itr->second.PrevHash << endl;
-    //         // cout << "        =======Transactions For The Block==========" << endl;
-    //         // for (int i = 0; i < itr->second.Transactions.size(); i++)
-    //         // {
-    //         //     cout << itr->second.Transactions[i].getMessage() << endl;
-    //         // }
-    //         /*Printing Node Balances of each Block*/
-    //         cout << "        =======Node Balances For The Block==========" << endl;
-    //         for (int i = 0; i < itr->second.NodeBalances.size(); i++)
-    //         {
-    //             cout << itr->second.NodeBalances[i] << " ";
-    //         }
-    //         cout << endl;
-    //         itr++;
-    //     }
+    for (int i = 0; i < this->numNodes; i++)
+    {
+        cout << "---------------------------------Blockchain At Peer " << i + 1 << "------------------------------------------" << endl;
+        auto itr = PeerNetwork.PeerVec[i].Blockchain.begin();
+        while (itr != PeerNetwork.PeerVec[i].Blockchain.end())
+        {
+            cout << "BlockId : " << itr->first << " ParentId : " << itr->second.PrevHash << endl;
+            // cout << "        =======Transactions For The Block==========" << endl;
+            // for (int i = 0; i < itr->second.Transactions.size(); i++)
+            // {
+            //     cout << itr->second.Transactions[i].getMessage() << endl;
+            // }
+            /*Printing Node Balances of each Block*/
+            // cout << "        =======Node Balances For The Block==========" << endl;
+            // for (int i = 0; i < itr->second.NodeBalances.size(); i++)
+            // {
+            //     cout << itr->second.NodeBalances[i] << " ";
+            // }
+            // cout << endl;
+            itr++;
+        }
 
-    //     cout << "BlockChain Length of Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].blockChainLength << endl;
-    // }
-    // while (!this->EventQueue.empty())
-    // {
-    //     cout << this->EventQueue.top()->type << endl;
-    //     this->EventQueue.pop();
-    // }
+        cout << "BlockChain Length of Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].blockChainLength << endl;
+    }
 }
+
+// while (!this->EventQueue.empty())
+//     {
+//         cout << this->EventQueue.top()->type << endl;
+//         this->EventQueue.pop();
+//     }
