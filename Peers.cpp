@@ -258,6 +258,8 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
     // Code For adding Block To BlockChain
     //  this->Blockchain.insert({B->blockId, B});
     //  lastBlockId++;
+    cout << "From Generate Block : ";
+    cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << B->blockLevel << endl;
     Simulator->EventQueue.push(new Event(B, Simulator->globalTime + Simulator->prop_delay + this->RandomInterArrivalBlockTime(Simulator->blockInterArrivalMeanTime), "MineBlock", this, NULL));
     delete B;
 }

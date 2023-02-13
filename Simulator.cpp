@@ -92,7 +92,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
         if (currEvent->type == "createBlock")
         {
-            cout << "CreateBlock" << endl;
+            cout << "createBlock : Block Created By " << currEvent->senderId << endl;
             PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
@@ -100,14 +100,14 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
         if (currEvent->type == "MineBlock")
         {
-            cout << "MineBlock" << endl;
+            cout << "MineBlock : Block Mined By " << currEvent->senderId << endl;
             PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
         }
         if (currEvent->type == "ReceiveBlock")
         {
-            cout << "ReceiveBlock" << endl;
+            cout << "ReceiveBlock : Block is Received by " << currEvent->receiverId << endl;
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent);
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
@@ -125,9 +125,17 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         //     break;
     }
 
-    while (!this->EventQueue.empty())
+    cout << "---------------------------------Samorch Tu Pahat Bas Lavdya------------------------------------------" << endl;
+    auto itr = PeerNetwork.PeerVec[10].Blockchain.begin();
+    while (itr != PeerNetwork.PeerVec[10].Blockchain.end())
     {
-        cout << this->EventQueue.top()->type << endl;
-        this->EventQueue.pop();
+        cout << "BlockId : " << itr->first << " ParentId : " << itr->second.PrevHash << endl;
+        itr++;
     }
+    cout << "BlockChain Length of Peer 10 : " << PeerNetwork.PeerVec[10].blockChainLength << endl;
+    // while (!this->EventQueue.empty())
+    // {
+    //     cout << this->EventQueue.top()->type << endl;
+    //     this->EventQueue.pop();
+    // }
 }
