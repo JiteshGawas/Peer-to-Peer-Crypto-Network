@@ -128,7 +128,7 @@ float Node ::RandomInterArrivalTxnTime()
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
-    exponential_distribution<float> InterArrivalMeanTime(0.00005); // 1/20 i.e exp dist with mean as 20 ms
+    exponential_distribution<float> InterArrivalMeanTime(1 / 2); // 1/20 i.e exp dist with mean as 20 seconds
 
     return InterArrivalMeanTime(generator);
 }
@@ -137,7 +137,7 @@ float Node ::RandomInterArrivalBlockTime(float InterArrivalBlockMean)
 {
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
-    exponential_distribution<float> InterArrivalMeanTime(1 / (InterArrivalBlockMean * 1000 / this->hashing_power)); // 1/(I/Hk) i.e exp dist with mean as I/Hk ms
+    exponential_distribution<float> InterArrivalMeanTime(1 / (InterArrivalBlockMean / this->hashing_power)); // 1/(I/Hk) i.e exp dist with mean as I/Hk seconds
 
     return InterArrivalMeanTime(generator);
 }
@@ -228,13 +228,14 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
 void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 {
     Block *B = new Block(++(*BlockCounter), this->lastBlockId, this->blockChainLength + 1);
-    int count = 900;
+    int count = 100;
     B->minedId = this->NodeId;
     cout << "Block is Created by the Node " << B->minedId << endl;
     B->NodeBalances = this->Blockchain[lastBlockId].NodeBalances; // Taking Balances from prev blocks
 
-    for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end(); ++itr)
+    for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end() && this->PendingTransaction.size() != 1; ++itr)
     {
+        cout << "Yaha Hoon Atka : TransSIze = " << this->PendingTransaction.size() << endl;
         if (B->NodeBalances[itr->second.senderId] >= itr->second.coins) // Balance of sender > Txn sender coins
         {
             B->Transactions.push_back(itr->second);
@@ -247,6 +248,7 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
         if (count == 0)
             break;
+        cout << "Uske Baad Yaha" << endl;
     }
 
     // cout << "\nBalance Of Current Block" << endl;
@@ -258,8 +260,9 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
     // Code For adding Block To BlockChain
     //  this->Blockchain.insert({B->blockId, B});
     //  lastBlockId++;
-    cout << "From Generate Block : ";
-    cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << B->blockLevel << endl;
+    // cout << "From Generate Block : ";
+    // cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << B->blockLevel << endl;
+
     Simulator->EventQueue.push(new Event(B, Simulator->globalTime + Simulator->prop_delay + this->RandomInterArrivalBlockTime(Simulator->blockInterArrivalMeanTime), "MineBlock", this, NULL));
     delete B;
 }
@@ -303,6 +306,7 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, in
     }
 
     this->ReceivedBlocks[currEvent->B.blockId] = true;
+    this->BlockArrivalTimes[currEvent->B.blockId] = currEvent->eventTime;
 
     int parentHash = currEvent->B.PrevHash;
     // vector<float> tempNodeBalance = this->Blockchain[parentHash].NodeBalances;

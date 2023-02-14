@@ -37,6 +37,7 @@ public:
     int terminationTime;
     int transaction_Counter = 0;
     int blockInterArrivalMeanTime;
+    string DateTime;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
@@ -44,6 +45,8 @@ public:
     DiscreteEventSimulator(int a, float b, float c);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
+    void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
+    void writeBlockChain(Peers &PeerNetwork, string DateTime);
     friend class Node;
 };
 
@@ -138,6 +141,7 @@ public:
     map<int, Block> Blockchain;
     map<int, Block> PendingBlocks;
     map<int, bool> ReceivedBlocks;
+    map<int, float> BlockArrivalTimes;
 
     bool isConnected(const Graph &adjMatrix, int peerId)
     {
