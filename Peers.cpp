@@ -16,12 +16,13 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
     for (int i = 0; i < Simulator.numNodes; i++)
     {
         PeerVec[i].NodeId = i;
-        PeerVec[i].balance = 30 + rand() % (21); // add some random numbers of BTC between 30-50 for each peer
+        PeerVec[i].balance = 30 + rand() % (71); // add some random numbers of BTC between 30-50 for each peer
         PeerVec[i].NWspeed = 1;
         PeerVec[i].CPU_Usage = 1;
         Block B(1, 0, 1);
         PeerVec[i].Blockchain.insert({1, B}); // Genesis Block
         PeerVec[i].Blockchain[1].blockLevel = 1;
+        PeerVec[i].Blockchain[1].minedId = -1;
         PeerVec[i].blockChainLength = 1;
         PeerVec[i].lastBlockId = 1; // Which Is Genesis Block
     }
@@ -123,12 +124,12 @@ void Peers ::setConnectedPeers(Graph &adjMatrix)
     // cout << endl;
 }
 
-float Node ::RandomInterArrivalTxnTime()
+float Node ::RandomInterArrivalTxnTime(float InterArrivalTxnMean)
 {
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
-    exponential_distribution<float> InterArrivalMeanTime(1 / 2); // 1/20 i.e exp dist with mean as 20 seconds
+    exponential_distribution<float> InterArrivalMeanTime(1 / InterArrivalTxnMean); // 1/20 i.e exp dist with mean as 20 seconds
 
     return InterArrivalMeanTime(generator);
 }
@@ -162,6 +163,7 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
     // A Mines 60 BTC or A Inits 60 BTC
     if (TxnType == "Mines" || TxnType == "Inits")
     {
+        coins = 50;
         receiverID = this->NodeId;
         ss << this->NodeId << " " << TxnType << " "
            << " " << coins << " BTC"; // A Inits
@@ -180,7 +182,7 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
         else
         {
             // cout << "Transaction From Inside While" << endl;
-            T = new Transaction(Message, Simulator->globalTime + RandomInterArrivalTxnTime());
+            T = new Transaction(Message, Simulator->globalTime + RandomInterArrivalTxnTime(Simulator->txnInterArrivalMeanTime));
         }
 
         this->AllTransactions[T->txnId] = T;
@@ -204,7 +206,7 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
             Simulator->transaction_Counter++;
         // cout << Simulator->transaction_Counter << endl;
 
-        Simulator->EventQueue.push(new Event(this->NodeId, Simulator->globalTime + RandomInterArrivalTxnTime(), "txn_Generate"));
+        Simulator->EventQueue.push(new Event(this->NodeId, Simulator->globalTime + RandomInterArrivalTxnTime(Simulator->txnInterArrivalMeanTime), "txn_Generate"));
     }
 }
 
@@ -228,14 +230,14 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
 void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 {
     Block *B = new Block(++(*BlockCounter), this->lastBlockId, this->blockChainLength + 1);
-    int count = 100;
+    int count = 500;
     B->minedId = this->NodeId;
-    cout << "Block is Created by the Node " << B->minedId << endl;
+    // cout << "Block is Created by the Node " << B->minedId << endl;
     B->NodeBalances = this->Blockchain[lastBlockId].NodeBalances; // Taking Balances from prev blocks
 
     for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end() && this->PendingTransaction.size() != 1; ++itr)
     {
-        cout << "Yaha Hoon Atka : TransSIze = " << this->PendingTransaction.size() << endl;
+        // cout << "Yaha Hoon Atka : TransSIze = " << this->PendingTransaction.size() << endl;
         if (B->NodeBalances[itr->second.senderId] >= itr->second.coins) // Balance of sender > Txn sender coins
         {
             B->Transactions.push_back(itr->second);
@@ -248,7 +250,7 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
         if (count == 0)
             break;
-        cout << "Uske Baad Yaha" << endl;
+        // cout << "Uske Baad Yaha" << endl;
     }
 
     // cout << "\nBalance Of Current Block" << endl;
@@ -269,9 +271,13 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
 void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << currEvent->B.blockLevel << endl;
+    // cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << currEvent->B.blockLevel << endl;
     if (this->blockChainLength + 1 != currEvent->B.blockLevel) // because the block was supposed to mine at the nextLevel
         return;
+    string coinbaseMessage = to_string(this->NodeId) + " Mines 50 BTC";
+    Transaction T(coinbaseMessage, currEvent->eventTime);
+    currEvent->B.Transactions.push_back(T);
+    currEvent->B.NodeBalances[this->NodeId] += 50;
 
     this->Blockchain.insert({currEvent->B.blockId, currEvent->B});
     if (currEvent->B.blockLevel == this->blockChainLength + 1)
@@ -345,11 +351,14 @@ bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly,
     int flag = 0;
     for (int i = 0; i < B.Transactions.size(); ++i)
     {
-        // Balance of sender > Txn sender coins
 
+        if (B.Transactions[i].type == "Mines") // when its a coinbase transaction just add 50 BTC to the miner
+        {
+            tempNodeBalance[B.minedId] += 50;
+            continue;
+        }
         tempNodeBalance[B.Transactions[i].senderId] -= B.Transactions[i].coins;
         tempNodeBalance[B.Transactions[i].receiverId] += B.Transactions[i].coins;
-        // this->PendingTransaction.erase(itr->first);
     }
 
     for (int i = 0; i < tempNodeBalance.size(); i++)
@@ -366,6 +375,15 @@ bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly,
     }
     if (flag == 0) // Block is valid
     {
+        for (int i = 0; i < B.Transactions.size(); ++i)
+        {
+            // Balance of sender > Txn sender coins
+            auto itr = this->PendingTransaction.find(B.Transactions[i].txnId);
+            if (itr != this->PendingTransaction.end()) // TXN Is in pending transactions, therfore delete it from there
+            {
+                this->PendingTransaction.erase(B.Transactions[i].txnId);
+            }
+        }
         this->Blockchain.insert({B.blockId, B}); // Added to Blockchain
         this->PendingBlocks.erase(B.PrevHash);
         if (this->blockChainLength + 1 == B.blockLevel) // to keep the blockchain length consistent in case forks happens

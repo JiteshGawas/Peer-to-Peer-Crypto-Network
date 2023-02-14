@@ -36,13 +36,14 @@ public:
     float globalTime = 0;
     int terminationTime;
     int transaction_Counter = 0;
-    int blockInterArrivalMeanTime;
+    float txnInterArrivalMeanTime;
+    float blockInterArrivalMeanTime;
     string DateTime;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
 
-    DiscreteEventSimulator(int a, float b, float c);
+    DiscreteEventSimulator(int numPeers, float z0, float z1, float txnMean, float blkMean);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
@@ -152,7 +153,7 @@ public:
     }
     void GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnType);
     void ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEvent);
-    float RandomInterArrivalTxnTime();
+    float RandomInterArrivalTxnTime(float InterArrivalMean);
     float RandomInterArrivalBlockTime(float InterArrivalMean);
     void GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter);
     void MineBlock(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);

@@ -100,11 +100,11 @@ float Event ::calculate_Latency(int senderNWspeed, int receiverNWspeed, int numT
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
-    exponential_distribution<float> dij(0.1);
+    exponential_distribution<float> dij(1 / (96000 / c));
 
     d = dij(generator);
 
-    latency = ((MessageSize * 1) / c) + d; // multiply by numTransaction
+    latency = ((MessageSize * numTransaction) / c) + d; // multiply by numTransaction
 
     return latency;
 }
