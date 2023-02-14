@@ -20,8 +20,8 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int a, float b, float c)
 
     this->globalTime = 0;
     this->transaction_Counter = 0;
-    this->terminationTime = 60000; // 60000 ms = 60 seconds
-    blockInterArrivalMeanTime = 100;
+    this->terminationTime = 6000000; // 60000 ms = 60 seconds 6000 seconds
+    blockInterArrivalMeanTime = 100; // 100*1000 = 1000 seconds
 }
 
 void DiscreteEventSimulator ::PrintParameters()
@@ -64,11 +64,14 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
     //     cout << this->EventQueue.top()->type << endl;
     //     this->EventQueue.pop();
     // }
+    int eventCounter = 0;
+
     while (!this->EventQueue.empty()) //
     {
         currEvent = this->EventQueue.top();
         this->EventQueue.pop();
         this->globalTime = currEvent->eventTime;
+        eventCounter++;
 
         // if (i++ > 500)
         // {
@@ -92,7 +95,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
         if (currEvent->type == "createBlock")
         {
-            cout << "createBlock : Block Created By " << currEvent->senderId << endl;
+            // cout << "createBlock : Block Created By " << currEvent->senderId << endl;
             PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
@@ -100,15 +103,15 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
         if (currEvent->type == "MineBlock")
         {
-            cout << "MineBlock : Block Mined By " << currEvent->senderId << endl;
+            // cout << "MineBlock : Block Mined By " << currEvent->senderId << endl;
             PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
         }
         if (currEvent->type == "ReceiveBlock")
         {
-            cout << "ReceiveBlock : Block is Received by " << currEvent->receiverId << endl;
-            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent);
+            // cout << "ReceiveBlock : Block is Received by " << currEvent->receiverId << endl;
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
             // break;
             // cout << "Event Sender : " << currEvent->senderId << " Event Receiver : " << currEvent->receiverId << " Event Type : " << currEvent->type << " Event Time : " << currEvent->eventTime << " " << currEvent->T << endl;
         }
@@ -127,28 +130,35 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
     for (int i = 0; i < this->numNodes; i++)
     {
+        // if (i == 1)
+        //     break;
         cout << "---------------------------------Blockchain At Peer " << i + 1 << "------------------------------------------" << endl;
-        auto itr = PeerNetwork.PeerVec[i].Blockchain.begin();
-        while (itr != PeerNetwork.PeerVec[i].Blockchain.end())
-        {
-            cout << "BlockId : " << itr->first << " ParentId : " << itr->second.PrevHash << endl;
-            // cout << "        =======Transactions For The Block==========" << endl;
-            // for (int i = 0; i < itr->second.Transactions.size(); i++)
-            // {
-            //     cout << itr->second.Transactions[i].getMessage() << endl;
-            // }
-            /*Printing Node Balances of each Block*/
-            // cout << "        =======Node Balances For The Block==========" << endl;
-            // for (int i = 0; i < itr->second.NodeBalances.size(); i++)
-            // {
-            //     cout << itr->second.NodeBalances[i] << " ";
-            // }
-            // cout << endl;
-            itr++;
-        }
+        // auto itr = PeerNetwork.PeerVec[i].Blockchain.begin();
+        // while (itr != PeerNetwork.PeerVec[i].Blockchain.end())
+        // {
+        //     cout << "BlockId : " << itr->first << " ParentId : " << itr->second.PrevHash << " Block Mined By : " << itr->second.minedId << endl;
+        //     // for (int i = 0; i < itr->second.Transactions.size(); i++)
+        //     //     cout << itr->second.Transactions[i].getMessage() << endl;
+        //     // cout << "        =======Transactions For The Block==========" << endl;
+        //     // for (int i = 0; i < itr->second.Transactions.size(); i++)
+        //     // {
+        //     //     cout << itr->second.Transactions[i].getMessage() << endl;
+        //     // }
+        //     /*Printing Node Balances of each Block*/
+        //     // cout << "        =======Node Balances For The Block==========" << endl;
+        //     // for (int i = 0; i < itr->second.NodeBalances.size(); i++)
+        //     // {
+        //     //     cout << itr->second.NodeBalances[i] << " ";
+        //     // }
+        //     // cout << endl;
+        //     itr++;
+        // }
 
         cout << "BlockChain Length of Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].blockChainLength << endl;
+        cout << "All Blocks Including Forks at Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].Blockchain.size() << endl;
     }
+    cout << "Event Executed : " << eventCounter << endl;
+    cout << "Event Pending in Queue : " << this->EventQueue.size() << endl;
 }
 
 // while (!this->EventQueue.empty())

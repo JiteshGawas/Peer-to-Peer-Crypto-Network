@@ -128,7 +128,7 @@ float Node ::RandomInterArrivalTxnTime()
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
-    exponential_distribution<float> InterArrivalMeanTime(0.02); // 1/20 i.e exp dist with mean as 20 ms
+    exponential_distribution<float> InterArrivalMeanTime(0.00005); // 1/20 i.e exp dist with mean as 20 ms
 
     return InterArrivalMeanTime(generator);
 }
@@ -137,7 +137,7 @@ float Node ::RandomInterArrivalBlockTime(float InterArrivalBlockMean)
 {
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
-    exponential_distribution<float> InterArrivalMeanTime(1 / (InterArrivalBlockMean / this->hashing_power)); // 1/(I/Hk) i.e exp dist with mean as I/Hk ms
+    exponential_distribution<float> InterArrivalMeanTime(1 / (InterArrivalBlockMean * 1000 / this->hashing_power)); // 1/(I/Hk) i.e exp dist with mean as I/Hk ms
 
     return InterArrivalMeanTime(generator);
 }
@@ -276,7 +276,8 @@ void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *B
         this->blockChainLength++;
         this->lastBlockId = currEvent->B.blockId;
     }
-    // cout << "Yahan To aa Hi Gaya" << endl;
+    // after block is mined add an coinbase txn + 50 coins to the miner
+    //  cout << "Yahan To aa Hi Gaya" << endl;
     this->BroadcastBlock(Simulator, currEvent);
     this->GenerateBlock(Simulator, BlockCounter);
 }
@@ -286,16 +287,18 @@ void Node ::BroadcastBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
     for (int i = 0; i < this->connectedPeers.size(); i++)
     {
         // cout << "YahinHoonMain" << endl;
-        Simulator->EventQueue.push(new Event(currEvent->B, Simulator->globalTime + Simulator->prop_delay, "ReceiveBlock", this, this->connectedPeers[i]));
+        if (this->connectedPeers[i]->NodeId != currEvent->senderId) // LoopLess Forwarding
+            Simulator->EventQueue.push(new Event(currEvent->B, Simulator->globalTime + Simulator->prop_delay, "ReceiveBlock", this, this->connectedPeers[i]));
     }
 }
 
-void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
+void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
     // cout << "Bas Yahi Kar Sakta Hun Mai abhi" << endl;
     bool flag;
     if (this->ReceivedBlocks.find(currEvent->B.blockId) != this->ReceivedBlocks.end()) // i.e Block already Received
     {
+        this->GenerateBlock(Simulator, BlockCounter);
         return;
     }
 
@@ -329,6 +332,7 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
     {
         this->PendingBlocks.insert({currEvent->B.PrevHash, currEvent->B});
     }
+    this->GenerateBlock(Simulator, BlockCounter);
 }
 
 bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly, false otherwise
@@ -360,7 +364,7 @@ bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly,
     {
         this->Blockchain.insert({B.blockId, B}); // Added to Blockchain
         this->PendingBlocks.erase(B.PrevHash);
-        if (this->blockChainLength + 1 == B.blockLevel)
+        if (this->blockChainLength + 1 == B.blockLevel) // to keep the blockchain length consistent in case forks happens
         {
             this->blockChainLength++;
             this->lastBlockId = B.blockId;

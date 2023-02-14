@@ -153,7 +153,7 @@ public:
     void GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter);
     void MineBlock(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
     void BroadcastBlock(DiscreteEventSimulator *Simulator, Event *E);
-    void ReceiveBlock(DiscreteEventSimulator *Simulator, Event *E);
+    void ReceiveBlock(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
     bool VerifyAddBlock(Block B); // true if block verified and successfullly, false otherwise
 };
 
