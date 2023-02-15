@@ -305,14 +305,15 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, in
 {
     // cout << "Bas Yahi Kar Sakta Hun Mai abhi" << endl;
     bool flag;
+
     if (this->ReceivedBlocks.find(currEvent->B.blockId) != this->ReceivedBlocks.end()) // i.e Block already Received
     {
         this->GenerateBlock(Simulator, BlockCounter);
         return;
     }
+    this->BlockArrivalTimes[currEvent->B.blockId] = currEvent->eventTime;
 
     this->ReceivedBlocks[currEvent->B.blockId] = true;
-    this->BlockArrivalTimes[currEvent->B.blockId] = currEvent->eventTime;
 
     int parentHash = currEvent->B.PrevHash;
     // vector<float> tempNodeBalance = this->Blockchain[parentHash].NodeBalances;

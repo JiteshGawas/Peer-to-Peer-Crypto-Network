@@ -15,7 +15,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-    DiscreteEventSimulator Simulator(MAX_PEERS, stof(argv[1]), stof(argv[2]), 20, 50); // InterArrivalTimeMean);
+    DiscreteEventSimulator Simulator(MAX_PEERS, stof(argv[1]), stof(argv[2]), 10, 20); // InterArrivalTimeMean);
     Graph adjMatrix(Simulator.numNodes, 4, 8);
     Peers Peers(Simulator.numNodes, Simulator); // object of class having peer having vector of nodes
 

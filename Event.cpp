@@ -97,6 +97,8 @@ float Event ::calculate_Latency(int senderNWspeed, int receiverNWspeed, int numT
         c = 5e6;
     }
 
+    if (!numTransaction)
+        numTransaction = 1;
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
