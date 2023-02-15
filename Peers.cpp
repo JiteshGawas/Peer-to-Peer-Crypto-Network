@@ -396,3 +396,34 @@ bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly,
     this->PendingBlocks.erase(B.PrevHash);
     return false;
 }
+
+int Node::getMinedInLongestChain()
+{
+    int last = this->lastBlockId;
+    int MinedInLongest = 0;
+
+    while (this->Blockchain[last].minedId != -1)
+    {
+        if (this->Blockchain[last].minedId == this->NodeId)
+            MinedInLongest++;
+
+        last = this->Blockchain[last].PrevHash;
+    }
+
+    return MinedInLongest;
+}
+
+int Node ::getTotalMinedBlocks()
+{
+    int totalMinedBlocks = 0;
+    for (auto itr = this->Blockchain.begin(); itr != this->Blockchain.end(); ++itr)
+    {
+        if (itr->second.minedId == -1)
+            continue;
+
+        if (itr->second.minedId == this->NodeId)
+            totalMinedBlocks++;
+    }
+
+    return totalMinedBlocks;
+}

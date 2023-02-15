@@ -24,7 +24,7 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1
 
     this->globalTime = 0;
     this->transaction_Counter = 0;
-    this->terminationTime = 6000; // 60000 ms = 60 seconds 6000 seconds
+    this->terminationTime = 3000; // 60000 ms = 60 seconds 6000 seconds
     // blockInterArrivalMeanTime = 100; // 100*1000 = 1000 seconds
     DateTime = __DATE__ " - " __TIME__;
 }
@@ -135,6 +135,8 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
     this->writeBlockArrivalTimes(PeerNetwork, this->DateTime);
     this->writeBlockChain(PeerNetwork, this->DateTime);
+    this->writeGraphDetails(PeerNetwork, adjMatrix, this->DateTime);
+    this->writeNodeDetails(PeerNetwork, this->DateTime);
     // writePeerInfo
     for (int i = 0; i < this->numNodes; i++)
     {
@@ -165,6 +167,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         }
         cout << "BlockChain Length of Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].blockChainLength << endl;
         cout << "All Blocks Including Forks at Peer " << i + 1 << " : " << PeerNetwork.PeerVec[i].Blockchain.size() << endl;
+        cout << "Ratio of Blocks in Longest Chain to All Blocks created : " << PeerNetwork.PeerVec[i].blockChainLength / PeerNetwork.PeerVec[i].Blockchain.size() << endl;
     }
     cout << "Event Executed : " << eventCounter << endl;
     cout << "Event Pending in Queue : " << this->EventQueue.size() << endl;
@@ -214,5 +217,78 @@ void DiscreteEventSimulator ::writeBlockChain(Peers &PeerNetwork, string DateTim
         }
         BlockChainLog.close();
     }
+    chdir(currentPath.c_str());
+}
+
+void DiscreteEventSimulator ::writeGraphDetails(Peers &PeerNetwork, Graph &adjMatrix, string DateTime)
+{
+    namespace fs = std::experimental::filesystem;
+    string currentPath = fs::current_path();
+    string directoryName = fs::current_path() / "Logs" / DateTime;
+    fs::create_directories(directoryName);
+    chdir(directoryName.c_str());
+    string arg = directoryName + "/GraphDetails.txt";
+    ofstream GraphDetailsLog(arg);
+
+    GraphDetailsLog << "[";
+    for (int i = 0; i < PeerNetwork.numNodes; i++)
+    {
+        GraphDetailsLog << "[";
+        for (int j = 0; j < PeerNetwork.numNodes; j++)
+        {
+            GraphDetailsLog << adjMatrix.adjMatrix[i][j];
+            if (j == PeerNetwork.numNodes - 1)
+                GraphDetailsLog << "]";
+            else
+                GraphDetailsLog << ",";
+        }
+        if (i == PeerNetwork.numNodes - 1)
+            GraphDetailsLog << "]";
+        else
+            GraphDetailsLog << ",";
+    }
+    GraphDetailsLog << endl;
+    GraphDetailsLog << endl;
+    GraphDetailsLog << "[";
+    vector<int> slowNodes;
+    for (int i = 0; i < PeerNetwork.numNodes; i++)
+    {
+        if (PeerNetwork.PeerVec[i].NWspeed == 0)
+            slowNodes.push_back(i);
+    }
+    for (int i = 0; i < slowNodes.size(); i++)
+    {
+        GraphDetailsLog << slowNodes[i];
+        if (i == slowNodes.size() - 1)
+            GraphDetailsLog << "]";
+        else
+            GraphDetailsLog << ",";
+    }
+    chdir(currentPath.c_str());
+}
+
+void DiscreteEventSimulator ::writeNodeDetails(Peers &PeerNetwork, string DateTime)
+{
+    namespace fs = std::experimental::filesystem;
+    string currentPath = fs::current_path();
+    string directoryName = fs::current_path() / "Logs" / DateTime;
+    fs::create_directories(directoryName);
+    chdir(directoryName.c_str());
+
+    float MinedInLongestChain, totalMinedBlocks;
+    float ratio;
+
+    string arg = "NodeDetails.csv";
+    ofstream NodeDetailsLog(arg);
+    NodeDetailsLog << "Node,Speed(0 - slow | 1 - fast),CPU_Usage(0 - low | 1 - high),#Blocks Mined in Longest Chain, #Total Blocks Mined in Blockchain, Ratio of #BlocksMinedInLongestChain vs #TotalMinedBlocks" << endl;
+    for (int j = 0; j < PeerNetwork.numNodes; j++)
+    {
+        MinedInLongestChain = PeerNetwork.PeerVec[j].getMinedInLongestChain();
+        totalMinedBlocks = PeerNetwork.PeerVec[j].getTotalMinedBlocks();
+        ratio = MinedInLongestChain / totalMinedBlocks;
+        NodeDetailsLog << j + 1 << "," << PeerNetwork.PeerVec[j].NWspeed << "," << PeerNetwork.PeerVec[j].CPU_Usage << "," << MinedInLongestChain << "," << totalMinedBlocks << "," << ratio << endl;
+    }
+    NodeDetailsLog.close();
+
     chdir(currentPath.c_str());
 }

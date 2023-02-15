@@ -48,6 +48,8 @@ public:
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
     void writeBlockChain(Peers &PeerNetwork, string DateTime);
+    void writeGraphDetails(Peers &PeerNetwork, Graph &adjMatrix, string DateTime);
+    void writeNodeDetails(Peers &PeerNetwork, string DateTime);
     friend class Node;
 };
 
@@ -87,6 +89,7 @@ public:
     // void GenerateTransaction(DiscreteEventSimulator &Simulator);
     // void Print();
 };
+
 ostream &operator<<(ostream &out, const Transaction &T);
 ostream &operator<<(ostream &out, const Transaction *T);
 
@@ -160,6 +163,8 @@ public:
     void BroadcastBlock(DiscreteEventSimulator *Simulator, Event *E);
     void ReceiveBlock(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
     bool VerifyAddBlock(Block B); // true if block verified and successfullly, false otherwise
+    int getMinedInLongestChain();
+    int getTotalMinedBlocks();
 };
 
 class Peers
