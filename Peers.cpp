@@ -10,6 +10,7 @@
 Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
 {
     this->numNodes = numNodes;
+    this->numHonest = this->numNodes - 1;
     srand(time(0));
 
     PeerVec.resize(Simulator.numNodes);
@@ -25,12 +26,26 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
         PeerVec[i].Blockchain[1].minedId = -1;
         PeerVec[i].blockChainLength = 1;
         PeerVec[i].lastBlockId = 1; // Which Is Genesis Block
+
+        if (i == 0)
+        {
+            PeerVec[i].nodeType = "adv";
+            PeerVec[i].hashing_power = Simulator.advMinPow;
+        }
+        else
+        {
+            PeerVec[i].nodeType = "hon";
+        }
     }
     this->BlockCounter = 1;
+    int temp;
     // Randomly Setting z0 % Nodes to have slowNWSpeed
-    while (z0_Set.size() < (Simulator.z_0 * Simulator.numNodes))
+    while (z0_Set.size() < (Simulator.z_0 * this->numHonest))
     {
-        z0_Set.insert(rand() % Simulator.numNodes); // cout<<"Z0 peers are"<<endl;
+        temp = rand() % Simulator.numNodes;
+        if (temp == 0)
+            continue;
+        z0_Set.insert(temp); // cout<<"Z0 peers are"<<endl;
     }
     for (auto it = z0_Set.begin(); it != z0_Set.end(); ++it)
     {
@@ -38,15 +53,20 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
     }
 
     // Randomly Setting z1 % Nodes to be of low_cpu
-    while (z1_Set.size() < (Simulator.z_1 * Simulator.numNodes))
-        z1_Set.insert(rand() % Simulator.numNodes);
+    while (z1_Set.size() < (Simulator.z_1 * this->numHonest))
+    {
+        temp = rand() % Simulator.numNodes;
+        if (temp == 0)
+            continue;
+        z1_Set.insert(temp);
+    }
     for (auto it = z1_Set.begin(); it != z1_Set.end(); ++it)
         PeerVec[*it].CPU_Usage = 0;
 
     // Distributing Hashing Powes Between Peers Such That "High_Cpu" Nodes Have 10 times more hashing power than "Low_Cpu" Nodes
-    this->slow_HashPower = 1 / ((this->numNodes * Simulator.z_1) + (this->numNodes - (this->numNodes * Simulator.z_1)) * 10);
-
-    for (int i = 0; i < Simulator.numNodes; i++)
+    this->slow_HashPower = (1 - Simulator.advMinPow) / ((this->numHonest * Simulator.z_1) + (this->numHonest - (this->numHonest * Simulator.z_1)) * 10);
+    // cout << "SlowHashPower - " << this->slow_HashPower << " | AdVMinPower - " << Simulator.advMinPow << endl;
+    for (int i = 1; i < Simulator.numNodes; i++) // starting from 1, as 0-node is adversary, mining power assigned already
     {
         if (this->PeerVec[i].CPU_Usage == 0) // i.e It is a low_CPU Node
             this->PeerVec[i].hashing_power = this->slow_HashPower;
@@ -67,24 +87,15 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator)
 
 void Peers::PeerInfo()
 {
-    cout << "PeerId  Balance  NWSpeed  CPU_Usage Hashing Power" << endl;
-    // cout << "BlockID, PrevHash, Blockhash" << endl;
+    cout << "PeerId  Balance  NWSpeed  CPU_Usage Node Type Hashing Power" << endl;
     for (int i = 0; i < numNodes; i++)
     {
-        // map<int, Block *>::iterator it = PeerVec[i].Blockchain.begin();
-
-        // Iterate through the map and print the elements
-        // while (it != PeerVec[i].Blockchain.end())
+        cout << PeerVec[i].NodeId << "\t " << PeerVec[i].balance << "\t  " << PeerVec[i].NWspeed << "\t  " << PeerVec[i].CPU_Usage << "\t " << PeerVec[i].nodeType << "\t" << PeerVec[i].hashing_power << endl;
+        // cout << "Genesis Block Balances For Node " << i << endl;
+        // for (int j = 0; j < this->numNodes; j++)
         // {
-        //     std::cout << "BlockId: " << it->second->blockId << ", PrevHash: " << it->second->PrevHash << ", BlockHash: " << it->second->BlockHash << std::endl;
-        //     ++it;
+        //     cout << PeerVec[i].Blockchain[1].NodeBalances[j] << " ";
         // }
-        cout << PeerVec[i].NodeId << "\t " << PeerVec[i].balance << "\t  " << PeerVec[i].NWspeed << "\t  " << PeerVec[i].CPU_Usage << "\t " << PeerVec[i].hashing_power << endl;
-        cout << "Genesis Block Balances For Node " << i << endl;
-        for (int j = 0; j < this->numNodes; j++)
-        {
-            cout << PeerVec[i].Blockchain[1].NodeBalances[j] << " ";
-        }
         cout << endl;
     }
 
@@ -96,6 +107,8 @@ void Peers::PeerInfo()
     }
     if (sum == 1)
         cout << "Hashing Power Distributed Correctly" << endl;
+    else
+        cout << sum << endl;
 }
 
 void Peers ::setConnectedPeers(Graph &adjMatrix)
@@ -110,18 +123,6 @@ void Peers ::setConnectedPeers(Graph &adjMatrix)
             }
         }
     }
-
-    // for (int i = 0; i < this->numNodes; i++)
-    // {
-    //     cout << i << " -> ";
-    //     for (int j = 0; j < this->PeerVec[i].connectedPeers.size(); j++)
-    //     {
-
-    //         cout << " " << this->PeerVec[i].connectedPeers[j]->NodeId;
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl;
 }
 
 float Node ::RandomInterArrivalTxnTime(float InterArrivalTxnMean)
@@ -176,12 +177,10 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
     {
         if (Simulator->transaction_Counter == 0)
         {
-            // cout << "Initial Transaction" << endl;
             T = new Transaction(Message, 0);
         }
         else
         {
-            // cout << "Transaction From Inside While" << endl;
             T = new Transaction(Message, Simulator->globalTime + RandomInterArrivalTxnTime(Simulator->txnInterArrivalMeanTime));
         }
 
@@ -195,16 +194,8 @@ void Node ::GenerateTransaction(DiscreteEventSimulator *Simulator, string TxnTyp
 
         delete T;
 
-        // std::map<std::string, Transaction>::iterator it = this->AllTransactions.begin();
-
-        // while (it != this->AllTransactions.end())
-        // {
-        //     std::cout << "txnID: " << it->first << ", TxnObject: " << it->second << std::endl;
-        //     ++it;
-        // }
         if (Simulator->transaction_Counter != 0)
             Simulator->transaction_Counter++;
-        // cout << Simulator->transaction_Counter << endl;
 
         Simulator->EventQueue.push(new Event(this->NodeId, Simulator->globalTime + RandomInterArrivalTxnTime(Simulator->txnInterArrivalMeanTime), "txn_Generate"));
     }
@@ -250,20 +241,7 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
         if (count == 0)
             break;
-        // cout << "Uske Baad Yaha" << endl;
     }
-
-    // cout << "\nBalance Of Current Block" << endl;
-
-    // for (int i = 0; i < B->Transactions.size(); i++)
-    // {
-    //     cout << B->Transactions[i] << endl;
-    // }
-    // Code For adding Block To BlockChain
-    //  this->Blockchain.insert({B->blockId, B});
-    //  lastBlockId++;
-    // cout << "From Generate Block : ";
-    // cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << B->blockLevel << endl;
 
     Simulator->EventQueue.push(new Event(B, Simulator->globalTime + Simulator->prop_delay + this->RandomInterArrivalBlockTime(Simulator->blockInterArrivalMeanTime), "MineBlock", this, NULL));
     delete B;
@@ -271,7 +249,6 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
 void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    // cout << "BlockChainLength " << this->blockChainLength << " | BlockLevel  : " << currEvent->B.blockLevel << endl;
     if (this->blockChainLength + 1 != currEvent->B.blockLevel) // because the block was supposed to mine at the nextLevel
         return;
     string coinbaseMessage = to_string(this->NodeId) + " Mines 50 BTC";
@@ -295,7 +272,6 @@ void Node ::BroadcastBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
 {
     for (int i = 0; i < this->connectedPeers.size(); i++)
     {
-        // cout << "YahinHoonMain" << endl;
         if (this->connectedPeers[i]->NodeId != currEvent->senderId) // LoopLess Forwarding
             Simulator->EventQueue.push(new Event(currEvent->B, Simulator->globalTime + Simulator->prop_delay, "ReceiveBlock", this, this->connectedPeers[i]));
     }
@@ -303,7 +279,6 @@ void Node ::BroadcastBlock(DiscreteEventSimulator *Simulator, Event *currEvent)
 
 void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    // cout << "Bas Yahi Kar Sakta Hun Mai abhi" << endl;
     bool flag;
 
     if (this->ReceivedBlocks.find(currEvent->B.blockId) != this->ReceivedBlocks.end()) // i.e Block already Received
@@ -316,9 +291,6 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, in
     this->ReceivedBlocks[currEvent->B.blockId] = true;
 
     int parentHash = currEvent->B.PrevHash;
-    // vector<float> tempNodeBalance = this->Blockchain[parentHash].NodeBalances;
-
-    // int count = currEvent->B.Transactions.size();
 
     if (this->Blockchain.find(parentHash) != this->Blockchain.end()) // Parent is found in blockchain
     {
@@ -398,7 +370,7 @@ bool Node ::VerifyAddBlock(Block B) // true if block verified and successfullly,
     return false;
 }
 
-int Node::getMinedInLongestChain()
+int Node::getMinedInLongestChain() // Number of blocks mined in the longest chain
 {
     int last = this->lastBlockId;
     int MinedInLongest = 0;
@@ -414,7 +386,7 @@ int Node::getMinedInLongestChain()
     return MinedInLongest;
 }
 
-int Node ::getTotalMinedBlocks()
+int Node ::getTotalMinedBlocks() // Number of blocks mined in the total blockchain
 {
     int totalMinedBlocks = 0;
     for (auto itr = this->Blockchain.begin(); itr != this->Blockchain.end(); ++itr)

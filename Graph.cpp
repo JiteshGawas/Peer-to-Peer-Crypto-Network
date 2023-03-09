@@ -17,7 +17,7 @@ Graph ::Graph(int numNodes, int minDegree, int maxDegree)
     }
 }
 
-void Graph ::createGraph()
+void Graph ::createGraph()   //Create graph using adjacency list such that each node is connected to 4 to 8 peers.
 {
     vector<vector<int>> adjList;
     adjList.resize(this->numNodes);
@@ -63,9 +63,8 @@ void Graph ::createGraph()
     }
 }
 
-bool Graph ::isConnected()
+bool Graph ::isConnected()   //Check if graph is connected
 {
-    // cout << "Checking Connectivity" << endl;
     dfs(0);
     int count = 0, i, j;
     for (i = 0; i < this->numNodes; i++)
@@ -73,7 +72,6 @@ bool Graph ::isConnected()
         if (this->visited[i])
             count++;
     }
-    // cout<<count<<endl;
     if (count == this->numNodes)
         return true;
     else
@@ -92,7 +90,7 @@ void Graph::dfs(int v)
         }
 }
 
-bool Graph::does_exist(const vector<vector<int>> &adjList, int row, int item)
+bool Graph::does_exist(const vector<vector<int>> &adjList, int row, int item)    
 {
     int flag = 0;
 

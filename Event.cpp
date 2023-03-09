@@ -3,14 +3,7 @@
 #include <chrono>
 using namespace std;
 
-// Event ::Event(Node *Generator, float eventTime, string type)
-// {
-//     this->eventTime = eventTime;
-//     this->type = type;
-//     senderId = Generator->NodeId;
-//     receiverId = -1;
-//     // T = NULL;
-// }
+
 
 Event ::Event(int NodeId, float eventTime, string type)
 {
@@ -20,11 +13,7 @@ Event ::Event(int NodeId, float eventTime, string type)
     this->eventTime = eventTime;
 }
 
-// class compareTimestamp
-// {
-// public:
-//     bool operator()(const Event &E1, const Event &E2);
-// };
+
 
 Event ::Event(Transaction *T, string EventType, Node *sender, Node *receiver, float prop_delay)
 {
@@ -33,7 +22,6 @@ Event ::Event(Transaction *T, string EventType, Node *sender, Node *receiver, fl
     this->eventTime = T->txnTime + prop_delay + calculate_Latency(sender->NWspeed, receiver->NWspeed);
     this->type = EventType;
     this->T = T;
-    // cout << this->T->senderId << endl;
 }
 
 Event ::Event(Transaction T, string EventType, Node *sender, Node *receiver, float prop_delay)
@@ -43,7 +31,6 @@ Event ::Event(Transaction T, string EventType, Node *sender, Node *receiver, flo
     this->eventTime = T.txnTime + prop_delay + calculate_Latency(sender->NWspeed, receiver->NWspeed);
     this->type = EventType;
     this->T = T;
-    // cout << this->T->senderId << endl;
 }
 
 Event ::Event(Block B, float eventTime, string EventType, Node *sender, Node *receiver)
@@ -58,7 +45,6 @@ Event ::Event(Block B, float eventTime, string EventType, Node *sender, Node *re
     this->eventTime = eventTime + calculate_Latency(sender->NWspeed, receiver->NWspeed, B.Transactions.size()); // RandomInterArrivalTime not latency
     this->type = EventType;
     this->B = B;
-    // cout << this->T->senderId << endl;
 }
 
 Event ::Event(Block *B, float eventTime, string EventType, Node *sender, Node *receiver)
@@ -78,9 +64,6 @@ Event ::Event(Block *B, float eventTime, string EventType, Node *sender, Node *r
         this->eventTime = eventTime + calculate_Latency(sender->NWspeed, receiver->NWspeed, this->B.Transactions.size());
     }
 
-    // RandomInterArrivalTime not latency if receiver is not there - receiver.nwspeed giving segmentation fault
-
-    // cout << this->T->senderId << endl;
 }
 
 float Event ::calculate_Latency(int senderNWspeed, int receiverNWspeed, int numTransaction)

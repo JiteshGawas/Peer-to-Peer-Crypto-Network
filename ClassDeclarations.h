@@ -38,12 +38,13 @@ public:
     int transaction_Counter = 0;
     float txnInterArrivalMeanTime;
     float blockInterArrivalMeanTime;
+    float advMinPow;
     string DateTime;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
 
-    DiscreteEventSimulator(int numPeers, float z0, float z1, float txnMean, float blkMean);
+    DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float txnMean, float blkMean);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
@@ -137,6 +138,7 @@ public:
     float balance;
     float hashing_power;
     int blockChainLength = 0;
+    string nodeType; // hon|adv
     vector<Node *> connectedPeers;
 
     // map<string, Transaction *> AllTransactions;
@@ -171,7 +173,7 @@ class Peers
 {
 public:
     vector<Node> PeerVec; // Vector of PeerVec
-    int numNodes, BlockCounter;
+    int numNodes, BlockCounter, numHonest;
     set<int> z0_Set, z1_Set;
     float slow_HashPower;
 
