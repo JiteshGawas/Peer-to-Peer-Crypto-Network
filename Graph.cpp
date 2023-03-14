@@ -17,22 +17,35 @@ Graph ::Graph(int numNodes, int minDegree, int maxDegree)
     }
 }
 
-void Graph ::createGraph()   //Create graph using adjacency list such that each node is connected to 4 to 8 peers.
+void Graph ::createGraph(float advMinPow, int numHonest) // Create graph using adjacency list such that each node is connected to 4 to 8 peers.
 {
     vector<vector<int>> adjList;
     adjList.resize(this->numNodes);
 
     srand(time(0));
+    int edges, j;
 
     for (int i = 0; i < (this->numNodes); i++)
     {
-        int edges = minDegree + (rand() % (maxDegree - minDegree + 1));
+        if (i == 0)
+        {
+            edges = advMinPow * numHonest;
+        }
+        else
+        {
+            edges = minDegree + (rand() % (maxDegree - minDegree + 1));
+        }
+
         edges = edges - adjList[i].size();
         while (edges > 0)
         {
-            int j = rand() % this->numNodes; // To generate random numbers in order to connect to a peer
+            j = rand() % this->numNodes;
+            while (j == 0)
+            {
+                j = rand() % this->numNodes; // To generate random numbers in order to connect to a peer
+            }
 
-            if (adjList[j].size() == 8)
+            if (adjList[j].size() == 8 && i != 0)
             {
                 continue;
             }
@@ -63,7 +76,7 @@ void Graph ::createGraph()   //Create graph using adjacency list such that each 
     }
 }
 
-bool Graph ::isConnected()   //Check if graph is connected
+bool Graph ::isConnected() // Check if graph is connected
 {
     dfs(0);
     int count = 0, i, j;
@@ -90,7 +103,7 @@ void Graph::dfs(int v)
         }
 }
 
-bool Graph::does_exist(const vector<vector<int>> &adjList, int row, int item)    
+bool Graph::does_exist(const vector<vector<int>> &adjList, int row, int item)
 {
     int flag = 0;
 

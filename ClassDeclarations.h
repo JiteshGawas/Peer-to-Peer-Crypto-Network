@@ -122,7 +122,7 @@ public:
     int numNodes, minDegree, maxDegree;
 
     Graph(int numNodes, int minDegree, int maxDegree);
-    void createGraph();
+    void createGraph(float advMinPow, int numHonest);
     bool isConnected();
     void dfs(int v);
     bool does_exist(const vector<vector<int>> &adjList, int row, int item);
@@ -138,9 +138,12 @@ public:
     float balance;
     float hashing_power;
     int blockChainLength = 0;
+    int privateChainLength = 0;
     string nodeType; // hon|adv
     vector<Node *> connectedPeers;
 
+    queue<Block> privateBlocks;
+    int lastBlockIdPrivate = 0;
     // map<string, Transaction *> AllTransactions;
     map<string, Transaction> AllTransactions;
     map<string, Transaction> PendingTransaction;
@@ -167,6 +170,13 @@ public:
     bool VerifyAddBlock(Block B); // true if block verified and successfullly, false otherwise
     int getMinedInLongestChain();
     int getTotalMinedBlocks();
+
+    //--------For Attacker----------
+    void MinePrivate(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
+    void BroadcastPrivateBlock(DiscreteEventSimulator *Simulator);
+    void ReceiveSelfish(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter); // mayBeRedundant
+    void SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter);
+    void addPrivateBlock(DiscreteEventSimulator *Simulator);
 };
 
 class Peers
@@ -177,7 +187,7 @@ public:
     set<int> z0_Set, z1_Set;
     float slow_HashPower;
 
-    Peers(int numNodes, DiscreteEventSimulator &Simulator);
+    Peers(int numNodes, DiscreteEventSimulator &Simulator, string attackerType);
     void PeerInfo();
     void setConnectedPeers(Graph &adjMatrix);
 };
