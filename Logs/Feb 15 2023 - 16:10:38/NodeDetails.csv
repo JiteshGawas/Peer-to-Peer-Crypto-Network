@@ -1,0 +1,21 @@
+Node,Speed(0 - slow | 1 - fast),CPU_Usage(0 - low | 1 - high),#Blocks Mined in Longest Chain, #Total Blocks Mined in Blockchain, Ratio of #BlocksMinedInLongestChain vs #TotalMinedBlocks
+1,1,0,0,0,-nan
+2,1,1,0,0,-nan
+3,0,1,0,0,-nan
+4,1,0,0,0,-nan
+5,1,0,0,0,-nan
+6,1,1,0,0,-nan
+7,1,1,0,0,-nan
+8,0,0,0,0,-nan
+9,1,0,0,0,-nan
+10,1,1,0,0,-nan
+11,0,1,0,0,-nan
+12,1,0,0,0,-nan
+13,1,0,0,0,-nan
+14,1,1,0,0,-nan
+15,1,1,0,0,-nan
+16,1,1,0,0,-nan
+17,1,1,0,0,-nan
+18,0,1,0,0,-nan
+19,1,0,0,0,-nan
+20,1,1,0,0,-nan
