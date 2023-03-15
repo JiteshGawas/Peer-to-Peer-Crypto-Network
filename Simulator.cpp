@@ -53,7 +53,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         cout << "Recreating : Still Not Connected" << endl;
         adjMatrix.createGraph(this->advMinPow, PeerNetwork.numHonest);
     }
-
+    // cout << "BP 0" << endl;
     PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
 
     // cout << "BP 1" << endl;
@@ -182,7 +182,7 @@ void DiscreteEventSimulator ::writeBlockChain(Peers &PeerNetwork, string DateTim
         ofstream BlockChainLog(arg);
         for (auto itr = PeerNetwork.PeerVec[i].Blockchain.begin(); itr != PeerNetwork.PeerVec[i].Blockchain.end(); ++itr)
         {
-            BlockChainLog << itr->first << " " << itr->second.PrevHash <<" "<<itr->second.minedId<<" "<< itr->second.minedTime <<endl;
+            BlockChainLog << itr->first << " " << itr->second.PrevHash << " " << itr->second.minedId << " " << itr->second.minedTime << endl;
         }
         BlockChainLog.close();
     }

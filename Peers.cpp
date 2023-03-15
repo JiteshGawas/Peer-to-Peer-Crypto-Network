@@ -587,6 +587,7 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
     if (this->privateBlocks.size() == 0)
     {
         // this->lastBlockIdPrivate = this->lastBlockId;
+        Selfishflag = 1;
         this->GenerateBlock(Simulator, BlockCounter);
     }
 
@@ -600,7 +601,14 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
 void Node ::StubbornAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
     cout << "Agaay Benhnchod" << endl;
-    this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
-    this->GenerateBlock(Simulator, BlockCounter);
-    this->privateBlocks.pop();
+    if (this->privateBlocks.size() >= 1)
+    {
+        this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
+        this->GenerateBlock(Simulator, BlockCounter);
+        this->privateBlocks.pop();
+    }
+    else
+    {
+        this->GenerateBlock(Simulator, BlockCounter);
+    }
 }
