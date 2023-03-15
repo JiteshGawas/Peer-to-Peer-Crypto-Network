@@ -226,8 +226,8 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
     int PrevBlockId, BlockLevel;
     // if (this->nodeType == "hon")
     // {
-        PrevBlockId = this->lastBlockId;
-        BlockLevel = this->Blockchain[this->lastBlockId].blockLevel + 1;
+    PrevBlockId = this->lastBlockId;
+    BlockLevel = this->Blockchain[this->lastBlockId].blockLevel + 1;
     // }
     // else
     // {
@@ -268,16 +268,13 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 
 void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    
+
     if (this->blockChainLength + 1 != currEvent->B.blockLevel) // because the block was supposed to mine at the nextLevel
         return;
     string coinbaseMessage = to_string(this->NodeId) + " Mines 50 BTC";
     Transaction T(coinbaseMessage, currEvent->eventTime);
     currEvent->B.Transactions.push_back(T);
     currEvent->B.NodeBalances[this->NodeId] += 50;
-
-    
-    
 
     this->Blockchain.insert({currEvent->B.blockId, currEvent->B});
     // this->Blockchain[currEvent->B.blockId].minedTime = currEvent->eventTime;
@@ -288,13 +285,19 @@ void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *B
     }
     // after block is mined add an coinbase txn + 50 coins to the miner
     //  cout << "Yahan To aa Hi Gaya" << endl;
-    if(this->nodeType=="hon")
+    if (this->nodeType == "hon")
     {
         this->BroadcastBlock(Simulator, currEvent);
     }
     else
     {
-        this->privateBlocks.push(currEvent->B);
+        if (Selfishflag == 1)
+        {
+            this->BroadcastBlock(Simulator, currEvent);
+            Selfishflag = 0;
+        }
+        else
+            this->privateBlocks.push(currEvent->B);
     }
 
     this->GenerateBlock(Simulator, BlockCounter);
@@ -329,28 +332,32 @@ void Node ::ReceiveBlock(DiscreteEventSimulator *Simulator, Event *currEvent, in
         flag = this->VerifyAddBlock(currEvent->B); // Parent Found so verify & add Block
         if (flag)
         {
-            if(this->nodeType=="hon")
+            if (this->nodeType == "hon")
             {
                 this->BroadcastBlock(Simulator, currEvent);
             }
-            else if(this->nodeType=="self")
+            else if (this->nodeType == "self")
             {
                 this->SelfishAttack(Simulator, currEvent, BlockCounter);
             }
+            else if (this->nodeType == "stub")
+            {
+                this->StubbornAttack(Simulator, currEvent, BlockCounter);
+            }
         }
-            
+
         // The Block was verified and added successfully
         Block TempBlock = currEvent->B;
         while (flag && (this->PendingBlocks.find(TempBlock.blockId) != this->PendingBlocks.end()))
         {
             flag = this->VerifyAddBlock(this->PendingBlocks[TempBlock.blockId]);
-            if (flag )
+            if (flag)
             {
-                if(this->nodeType=="hon")
+                if (this->nodeType == "hon")
                 {
                     this->BroadcastBlock(Simulator, currEvent);
                 }
-                else if(this->nodeType=="self")
+                else if (this->nodeType == "self")
                 {
                     this->SelfishAttack(Simulator, currEvent, BlockCounter);
                 }
@@ -550,15 +557,13 @@ void Node ::BroadcastPrivateBlock(DiscreteEventSimulator *Simulator)
 
 void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    if (this->privateBlocks.size() == 1 || this->privateBlocks.size() > 2) // when lead becomes 0 : broadcast the mined block, lead = 1: broadcast all the blocks
+    if (this->privateBlocks.size() == 1) // when lead becomes 0 : broadcast the mined block, lead = 1: broadcast all the blocks
     {
 
         this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
-        
+        Selfishflag = 1;
         this->GenerateBlock(Simulator, BlockCounter);
         this->privateBlocks.pop();
-
-        
     }
 
     if (this->privateBlocks.size() == 2)
@@ -567,14 +572,21 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
         {
             this->BroadcastPrivateBlock(Simulator);
             // add to self blockchain also : Look at verifyAdd function
-            
+
             this->privateBlocks.pop();
         }
+    }
+    if (this->privateBlocks.size() > 2)
+    {
+        this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
+
+        this->GenerateBlock(Simulator, BlockCounter);
+        this->privateBlocks.pop();
     }
 
     if (this->privateBlocks.size() == 0)
     {
-        this->lastBlockIdPrivate = this->lastBlockId;
+        // this->lastBlockIdPrivate = this->lastBlockId;
         this->GenerateBlock(Simulator, BlockCounter);
     }
 
@@ -583,4 +595,12 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
     //     this->BroadcastPrivateBlock(Simulator);
     //     this->privateBlocks.pop();
     // }
+}
+// Incomplete
+void Node ::StubbornAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
+{
+    cout << "Agaay Benhnchod" << endl;
+    this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
+    this->GenerateBlock(Simulator, BlockCounter);
+    this->privateBlocks.pop();
 }

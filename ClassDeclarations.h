@@ -61,7 +61,7 @@ class Block
 public:
     int blockId, PrevHash, BlockHash;
     int minedId, blockLevel = 0;
-    float minedTime=1.0;
+    float minedTime = 1.0;
     vector<Transaction> Transactions;
     vector<float> NodeBalances;
 
@@ -140,6 +140,7 @@ public:
     float hashing_power;
     int blockChainLength = 0;
     int privateChainLength = 0;
+    int Selfishflag = 0;
     string nodeType; // hon|adv
     vector<Node *> connectedPeers;
 
@@ -173,11 +174,12 @@ public:
     int getTotalMinedBlocks();
 
     //--------For Attacker----------
-    void MinePrivate(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
+    // void MinePrivate(DiscreteEventSimulator *Simulator, Event *E, int *BlockCounter);
     void BroadcastPrivateBlock(DiscreteEventSimulator *Simulator);
-    void ReceiveSelfish(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter); // mayBeRedundant
+    // void ReceiveSelfish(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter); // mayBeRedundant
     void SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter);
-    void addPrivateBlock(DiscreteEventSimulator *Simulator);
+    void StubbornAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter);
+    // void addPrivateBlock(DiscreteEventSimulator *Simulator);
 };
 
 class Peers

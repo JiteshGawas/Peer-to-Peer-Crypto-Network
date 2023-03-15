@@ -11,7 +11,7 @@ using namespace std;
 #define MAX_PEERS 21
 
 //-------------------------------------------------Main Begins----------------------------------------------------------------------
-
+// Usage : ./Build/main num_peers z0 z1 advConPer advMinPow advType
 int main(int argc, char *argv[])
 {
     // #peers        zo              z1             advMinPow  : also need to take adversary connected to honest node percentage by command line
