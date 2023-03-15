@@ -5,4 +5,4 @@ DeletedLibraries/*
 .vscode/*
 .editorconfig
 out.txt
-
+results/*
