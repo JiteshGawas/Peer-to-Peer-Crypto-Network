@@ -24,7 +24,7 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1
 
     this->globalTime = 0;
     this->transaction_Counter = 0;
-    this->terminationTime = 1000; // Termination time
+    this->terminationTime = 3000; // Termination time
 
     DateTime = __DATE__ " - " __TIME__;
     this->advMinPow = advMinPow;
@@ -56,14 +56,14 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
 
     PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
 
-    cout << "BP 1" << endl;
+    // cout << "BP 1" << endl;
 
     for (int i = 0; i < this->numNodes; i++) // Initial Transactions & createBlock Event For All Nodes
     {
         PeerNetwork.PeerVec[i].GenerateTransaction(this, "Pays");
         this->EventQueue.push(new Event(i, 50.0 + PeerNetwork.PeerVec[i].RandomInterArrivalBlockTime(blockInterArrivalMeanTime), "createBlock"));
     }
-    cout << "BP 2" << endl;
+    // cout << "BP 2" << endl;
 
     this->transaction_Counter = this->numNodes;
     int i = 1;
@@ -80,36 +80,36 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         if (currEvent->type == "txn_Generate") // To Generate Transactions after every interArrivalTxnTime Step
         {
             PeerNetwork.PeerVec[currEvent->senderId].GenerateTransaction(this, "Pays");
-            cout << "BP 3" << endl;
+            // cout << "BP 3" << endl;
         }
 
         if (currEvent->type == "txn_Receive") // Receive Transaction
         {
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveTransaction(this, currEvent);
-            cout << "BP 4" << endl;
+            // cout << "BP 4" << endl;
         }
 
         if (currEvent->type == "createBlock") // Generate Block
         {
-            cout << "BP 5" << endl;
+            // cout << "BP 5" << endl;
             PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
         }
 
         if (currEvent->type == "MineBlock") // Mine Block
         {
-            cout << "BP 6" << endl;
-            if (currEvent->senderId == 0)
-                PeerNetwork.PeerVec[currEvent->senderId].MinePrivate(this, currEvent, &(PeerNetwork.BlockCounter));
-            else
-                PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
+            // cout << "BP 6" << endl;
+            // if (currEvent->senderId == 0)
+            //     PeerNetwork.PeerVec[currEvent->senderId].MinePrivate(this, currEvent, &(PeerNetwork.BlockCounter));
+            // else
+            PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
         if (currEvent->type == "ReceiveBlock") // Receive Block
         {
-            cout << "BP 7" << endl;
-            if (currEvent->receiverId == 0)
-                PeerNetwork.PeerVec[currEvent->receiverId].ReceiveSelfish(this, currEvent, &(PeerNetwork.BlockCounter));
-            else
-                PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
+            // cout << "BP 7" << endl;
+            // if (currEvent->receiverId == 0)
+            //     PeerNetwork.PeerVec[currEvent->receiverId].ReceiveSelfish(this, currEvent, &(PeerNetwork.BlockCounter));
+            // else
+            PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
 
         delete currEvent;
@@ -182,7 +182,7 @@ void DiscreteEventSimulator ::writeBlockChain(Peers &PeerNetwork, string DateTim
         ofstream BlockChainLog(arg);
         for (auto itr = PeerNetwork.PeerVec[i].Blockchain.begin(); itr != PeerNetwork.PeerVec[i].Blockchain.end(); ++itr)
         {
-            BlockChainLog << itr->first << " " << itr->second.PrevHash << endl;
+            BlockChainLog << itr->first << " " << itr->second.PrevHash <<" "<<itr->second.minedId<<" "<< itr->second.minedTime <<endl;
         }
         BlockChainLog.close();
     }

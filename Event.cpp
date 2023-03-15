@@ -45,6 +45,7 @@ Event ::Event(Block B, float eventTime, string EventType, Node *sender, Node *re
     this->eventTime = eventTime + calculate_Latency(sender->NWspeed, receiver->NWspeed, B.Transactions.size()); // RandomInterArrivalTime not latency
     this->type = EventType;
     this->B = B;
+    this->B.minedTime = this->eventTime;
 }
 
 Event ::Event(Block *B, float eventTime, string EventType, Node *sender, Node *receiver)
@@ -63,6 +64,7 @@ Event ::Event(Block *B, float eventTime, string EventType, Node *sender, Node *r
         this->receiverId = receiver->NodeId;
         this->eventTime = eventTime + calculate_Latency(sender->NWspeed, receiver->NWspeed, this->B.Transactions.size());
     }
+    this->B.minedTime = this->eventTime;
 
 }
 

@@ -61,6 +61,7 @@ class Block
 public:
     int blockId, PrevHash, BlockHash;
     int minedId, blockLevel = 0;
+    float minedTime=1.0;
     vector<Transaction> Transactions;
     vector<float> NodeBalances;
 

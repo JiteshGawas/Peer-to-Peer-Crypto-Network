@@ -1,0 +1,270 @@
+graph parent {
+	rankdir=LR splines=line
+	subgraph child {
+		1 [label=1]
+	}
+	2 -- 1
+	14 -- 1
+	subgraph child {
+		2 [label=2]
+		14 [label=14]
+	}
+	3 -- 2
+	667 -- 2
+	subgraph child {
+		3 [label=3]
+		667 [label=667]
+	}
+	7 -- 3
+	674 -- 667
+	subgraph child {
+		7 [label=7]
+		674 [label=674]
+	}
+	8 -- 7
+	1851 -- 7
+	subgraph child {
+		8 [label=8]
+		1851 [label=1851]
+	}
+	11 -- 8
+	2614 -- 1851
+	subgraph child {
+		11 [label=11]
+		2614 [label=2614]
+	}
+	12 -- 11
+	2636 -- 2614
+	subgraph child {
+		12 [label=12]
+		2636 [label=2636]
+	}
+	16 -- 12
+	3508 -- 2636
+	subgraph child {
+		16 [label=16]
+		3508 [label=3508]
+	}
+	323 -- 16
+	3854 -- 3508
+	subgraph child {
+		323 [label=323]
+		3854 [label=3854]
+	}
+	823 -- 323
+	4750 -- 3854
+	subgraph child {
+		823 [label=823]
+		4750 [label=4750]
+	}
+	2134 -- 823
+	5590 -- 4750
+	subgraph child {
+		2134 [label=2134]
+		5590 [label=5590]
+	}
+	2884 -- 2134
+	6195 -- 2134
+	subgraph child {
+		2884 [label=2884]
+		6195 [label=6195]
+	}
+	3288 -- 2884
+	6960 -- 6195
+	subgraph child {
+		3288 [label=3288]
+		6960 [label=6960]
+	}
+	4141 -- 3288
+	7205 -- 6960
+	subgraph child {
+		4141 [label=4141]
+		7205 [label=7205]
+	}
+	4652 -- 4141
+	8321 -- 7205
+	subgraph child {
+		4652 [label=4652]
+		8321 [label=8321]
+	}
+	6286 -- 4652
+	8963 -- 8321
+	subgraph child {
+		6286 [label=6286]
+		8963 [label=8963]
+	}
+	6779 -- 6286
+	9749 -- 8963
+	subgraph child {
+		6779 [label=6779]
+		9749 [label=9749]
+	}
+	7457 -- 6779
+	10361 -- 9749
+	subgraph child {
+		7457 [label=7457]
+		10361 [label=10361]
+	}
+	7930 -- 7457
+	10927 -- 10361
+	subgraph child {
+		7930 [label=7930]
+		10927 [label=10927]
+	}
+	8482 -- 7930
+	11660 -- 10927
+	subgraph child {
+		8482 [label=8482]
+		11660 [label=11660]
+	}
+	8831 -- 8482
+	12335 -- 11660
+	subgraph child {
+		8831 [label=8831]
+		12335 [label=12335]
+	}
+	10058 -- 8831
+	12641 -- 8831
+	subgraph child {
+		10058 [label=10058]
+		12641 [label=12641]
+	}
+	11154 -- 10058
+	13224 -- 12641
+	subgraph child {
+		11154 [label=11154]
+		13224 [label=13224]
+	}
+	11989 -- 11154
+	13765 -- 11154
+	subgraph child {
+		11989 [label=11989]
+		13765 [label=13765]
+	}
+	12685 -- 11989
+	subgraph child {
+		12685 [label=12685]
+	}
+	13145 -- 12685
+	14777 -- 12685
+	subgraph child {
+		13145 [label=13145]
+		14777 [label=14777]
+	}
+	14500 -- 13145
+	16997 -- 14777
+	subgraph child {
+		14500 [label=14500]
+		16997 [label=16997]
+	}
+	15828 -- 14500
+	19075 -- 16997
+	subgraph child {
+		15828 [label=15828]
+		19075 [label=19075]
+	}
+	16063 -- 15828
+	20353 -- 19075
+	subgraph child {
+		16063 [label=16063]
+		20353 [label=20353]
+	}
+	16117 -- 16063
+	21296 -- 20353
+	subgraph child {
+		16117 [label=16117]
+		21296 [label=21296]
+	}
+	16175 -- 16117
+	16596 -- 16117
+	21694 -- 21296
+	subgraph child {
+		16175 [label=16175]
+		16596 [label=16596]
+		21694 [label=21694]
+	}
+	16992 -- 16175
+	subgraph child {
+		16992 [label=16992]
+	}
+	17543 -- 16992
+	17974 -- 16992
+	subgraph child {
+		17543 [label=17543]
+		17974 [label=17974]
+	}
+	18610 -- 17974
+	subgraph child {
+		18610 [label=18610]
+	}
+	18715 -- 18610
+	18882 -- 18610
+	subgraph child {
+		18715 [label=18715]
+		18882 [label=18882]
+	}
+	19221 -- 18715
+	19175 -- 18882
+	subgraph child {
+		19221 [label=19221]
+		19175 [label=19175]
+	}
+	19820 -- 19221
+	19826 -- 19175
+	subgraph child {
+		19820 [label=19820]
+		19826 [label=19826]
+	}
+	20792 -- 19826
+	subgraph child {
+		20792 [label=20792]
+	}
+	21059 -- 20792
+	subgraph child {
+		21059 [label=21059]
+	}
+	21133 -- 21059
+	subgraph child {
+		21133 [label=21133]
+	}
+	22217 -- 21133
+	subgraph child {
+		22217 [label=22217]
+	}
+	22354 -- 22217
+	22525 -- 22217
+	subgraph child {
+		22354 [label=22354]
+		22525 [label=22525]
+	}
+	22577 -- 22354
+	22589 -- 22525
+	subgraph child {
+		22577 [label=22577]
+		22589 [label=22589]
+	}
+	23223 -- 22577
+	23073 -- 22589
+	subgraph child {
+		23223 [label=23223]
+		23073 [label=23073]
+	}
+	23954 -- 23223
+	23626 -- 23073
+	subgraph child {
+		23954 [label=23954]
+		23626 [label=23626]
+	}
+	24765 -- 23954
+	24967 -- 23626
+	subgraph child {
+		24765 [label=24765]
+		24967 [label=24967]
+	}
+	25497 -- 24765
+	25024 -- 24967
+	subgraph child {
+		25497 [label=25497]
+		25024 [label=25024]
+	}
+}
