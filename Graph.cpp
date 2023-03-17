@@ -17,7 +17,7 @@ Graph ::Graph(int numNodes, int minDegree, int maxDegree)
     }
 }
 
-void Graph ::createGraph(float advMinPow, int numHonest) // Create graph using adjacency list such that each node is connected to 4 to 8 peers.
+void Graph ::createGraph(float advConPer, int numHonest) // Create graph using adjacency list such that each node is connected to 4 to 8 peers.
 {
 
     vector<vector<int>> adjList;
@@ -30,7 +30,7 @@ void Graph ::createGraph(float advMinPow, int numHonest) // Create graph using a
     {
         if (i == 0)
         {
-            edges = advMinPow * numHonest;
+            edges = advConPer * numHonest;
         }
         else
         {

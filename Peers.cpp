@@ -600,7 +600,7 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
 // Incomplete
 void Node ::StubbornAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    cout << "Agaay Benhnchod" << endl;
+
     if (this->privateBlocks.size() >= 1)
     {
         this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function

@@ -39,18 +39,20 @@ public:
     float txnInterArrivalMeanTime;
     float blockInterArrivalMeanTime;
     float advMinPow;
+    float advConPer;
     string DateTime;
 
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
 
-    DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float txnMean, float blkMean);
+    DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
     void writeBlockChain(Peers &PeerNetwork, string DateTime);
     void writeGraphDetails(Peers &PeerNetwork, Graph &adjMatrix, string DateTime);
     void writeNodeDetails(Peers &PeerNetwork, string DateTime);
+    void write_Params_Ratios(Peers &PeerNetwork, string DateTime);
     friend class Node;
 };
 

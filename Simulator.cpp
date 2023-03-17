@@ -9,13 +9,14 @@ using namespace std;
 
 #define MAX_Transactions 5000
 
-DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float txnMean, float blkMean)
+DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean)
 {
     numNodes = numPeers;
     z_0 = z0;
     z_1 = z1;
     txnInterArrivalMeanTime = txnMean;
     blockInterArrivalMeanTime = blkMean;
+    this->advConPer = advConPer;
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine generator(seed);
 
@@ -47,11 +48,11 @@ bool compareTimestamp ::operator()(const Event *E1, const Event *E2)
 void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwork)
 {
     srand(time(0));
-    adjMatrix.createGraph(this->advMinPow, PeerNetwork.numHonest);
+    adjMatrix.createGraph(this->advConPer, PeerNetwork.numHonest);
     while (!adjMatrix.isConnected()) // Keep Creating Graph unless it is connected
     {
         cout << "Recreating : Still Not Connected" << endl;
-        adjMatrix.createGraph(this->advMinPow, PeerNetwork.numHonest);
+        adjMatrix.createGraph(this->advConPer, PeerNetwork.numHonest);
     }
     // cout << "BP 0" << endl;
     PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
@@ -127,6 +128,7 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
     this->writeBlockChain(PeerNetwork, this->DateTime);
     this->writeGraphDetails(PeerNetwork, adjMatrix, this->DateTime);
     this->writeNodeDetails(PeerNetwork, this->DateTime);
+    this->write_Params_Ratios(PeerNetwork, this->DateTime);
     // writePeerInfo
     for (int i = 0; i < this->numNodes; i++)
     {
@@ -261,5 +263,75 @@ void DiscreteEventSimulator ::writeNodeDetails(Peers &PeerNetwork, string DateTi
     }
     NodeDetailsLog.close();
 
+    chdir(currentPath.c_str());
+}
+
+void DiscreteEventSimulator ::write_Params_Ratios(Peers &PeerNetwork, string DateTime) // Write node details like z0,z1, Number of nodes mined to a text file
+{
+    namespace fs = std::experimental::filesystem;
+    string currentPath = fs::current_path();
+    string directoryName = fs::current_path() / "Logs" / DateTime;
+    fs::create_directories(directoryName);
+    chdir(directoryName.c_str());
+
+    float MinedInLongestChain, totalMinedBlocks;
+    float ratio;
+
+    string arg = "Params_Ratios.txt";
+    ofstream NodeDetailsLog(arg);
+    // For Finding Ratios of Adversary from the blockchain tree present at honest node
+    NodeDetailsLog << "Blocks Mined By Adversary In Blockchain, Total Blocks Mined By Adversary, MPU_Node_Adv" << endl;
+
+    int last = PeerNetwork.PeerVec[1].lastBlockId;
+    MinedInLongestChain = 0;
+    totalMinedBlocks = 0;
+    float Ratio;
+
+    while (PeerNetwork.PeerVec[1].Blockchain[last].minedId != -1)
+    {
+        if (PeerNetwork.PeerVec[1].Blockchain[last].minedId == 0)
+            MinedInLongestChain++;
+
+        last = PeerNetwork.PeerVec[1].Blockchain[last].PrevHash;
+    }
+
+    for (auto itr = PeerNetwork.PeerVec[1].Blockchain.begin(); itr != PeerNetwork.PeerVec[1].Blockchain.end(); ++itr)
+    {
+        if (itr->second.minedId == -1)
+            continue;
+
+        if (itr->second.minedId == 0)
+            totalMinedBlocks++;
+    }
+    Ratio = MinedInLongestChain / totalMinedBlocks;
+    NodeDetailsLog << MinedInLongestChain << "," << totalMinedBlocks << "," << Ratio << "\n"
+                   << endl;
+
+    // For the second Ratio
+
+    float totalBlocks = PeerNetwork.PeerVec[1].Blockchain.size();
+    float blocksinmainchain = 0;
+
+    last = PeerNetwork.PeerVec[1].lastBlockId;
+
+    while (PeerNetwork.PeerVec[1].Blockchain[last].minedId != -1)
+    {
+        blocksinmainchain++;
+        last = PeerNetwork.PeerVec[1].Blockchain[last].PrevHash;
+    }
+
+    Ratio = blocksinmainchain / totalBlocks;
+    NodeDetailsLog
+        << "Number of Blocks In Blockchain, Number of Blocks Generated Across All Nodes, MPU_Node_overall" << endl;
+    NodeDetailsLog << blocksinmainchain << "," << totalBlocks << "," << Ratio << "\n"
+                   << endl;
+
+    NodeDetailsLog << "Simulation Parameters\n--------------------------------------------------------" << endl;
+    NodeDetailsLog << "Number Of Peers: " << this->numNodes << endl;
+    NodeDetailsLog << "Slow Nodes(z_0): " << this->z_0 << endl;
+    NodeDetailsLog << "Low CPU Nodes(z_1): " << this->z_1 << endl;
+    NodeDetailsLog << "Adversary Mining Power: " << this->advMinPow << endl;
+    NodeDetailsLog << "Adversary Connected to Honest Peers(Tao): " << this->advConPer << endl;
+    NodeDetailsLog << "Adversary Type: " << PeerNetwork.PeerVec[0].nodeType << endl;
     chdir(currentPath.c_str());
 }
