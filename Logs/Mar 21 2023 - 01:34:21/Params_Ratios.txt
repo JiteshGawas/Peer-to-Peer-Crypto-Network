@@ -1,0 +1,14 @@
+Blocks Mined By Adversary In Blockchain, Total Blocks Mined By Adversary, MPU_Node_Adv
+45,47,0.957447
+
+Number of Blocks In Blockchain, Number of Blocks Generated Across All Nodes, MPU_Node_overall
+49,97,0.505155
+
+Simulation Parameters
+--------------------------------------------------------
+Number Of Peers: 51
+Slow Nodes(z_0): 0.2
+Low CPU Nodes(z_1): 0.4
+Adversary Mining Power: 0.5
+Adversary Connected to Honest Peers(Tao): 0.5
+Adversary Type: stub
