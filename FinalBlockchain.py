@@ -3,8 +3,10 @@ from queue import Queue
 import sys
 
 class Block:
-    def __init__(self, prev_block_hash):
+    def __init__(self, prev_block_hash, miner_id, timestamp):
         self.prev_block_hash = prev_block_hash
+        self.miner_id = miner_id
+        self.timestamp = timestamp
 
 class BlockChain:
     def __init__(self, file_name):
@@ -12,8 +14,8 @@ class BlockChain:
         with open(file_name, 'r') as f:
             for line in f:
                 parts = line.strip().split()
-                block_id, prev_block_hash = int(parts[0]), int(parts[1]) if parts[1] != 'None' else None
-                self.block_tree[block_id] = [Block(prev_block_hash)]
+                block_id, prev_block_hash, miner_id, timestamp = int(parts[0]), int(parts[1]) if parts[1] != 'None' else None, int(parts[2]), parts[3]
+                self.block_tree[block_id] = [Block(prev_block_hash, miner_id, timestamp)]
         self.id = 123
 
     def visualize(self):
@@ -34,7 +36,10 @@ class BlockChain:
             while size>0:
                 parent_hash = queue.get()
                 for child_id in tree[parent_hash].keys():
-                    temp.node(str(child_id), str(child_id)) # Modified line to set the label as block ID
+                    block = tree[parent_hash][child_id]
+                    label_color = 'red' if block.miner_id == 0 else 'black'
+                    label = str(child_id) + "\n" + "Miner: " + str(block.miner_id) + "\n" + "Timestamp: " + str(block.timestamp)
+                    temp.node(str(child_id), label, color=label_color)
                     hash[child_id] = str(child_id)
                     if parent_hash != 0:
                         graph.edge(str(child_id), hash[tree[parent_hash][child_id].prev_block_hash])
