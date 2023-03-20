@@ -33,6 +33,7 @@ Peers::Peers(int numNodes, DiscreteEventSimulator &Simulator, string attackerTyp
             PeerVec[i].hashing_power = Simulator.advMinPow;
             PeerVec[i].privateChainLength = 1;
             PeerVec[i].lastBlockIdPrivate = 1;
+            PeerVec[i].Selfishflag = 1;
         }
         else
         {
