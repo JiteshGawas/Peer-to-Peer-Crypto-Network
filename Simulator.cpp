@@ -44,6 +44,7 @@ bool compareTimestamp ::operator()(const Event *E1, const Event *E2)
         return false;
 }
 
+// added comment
 void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwork)
 {
     srand(time(0));
@@ -53,14 +54,17 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         cout << "Recreating : Still Not Connected" << endl;
         adjMatrix.createGraph(this->advConPer, PeerNetwork.numHonest);
     }
+    // cout << "BP 0" << endl;
     PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
 
+    // cout << "BP 1" << endl;
 
     for (int i = 0; i < this->numNodes; i++) // Initial Transactions & createBlock Event For All Nodes
     {
         PeerNetwork.PeerVec[i].GenerateTransaction(this, "Pays");
         this->EventQueue.push(new Event(i, 50.0 + PeerNetwork.PeerVec[i].RandomInterArrivalBlockTime(blockInterArrivalMeanTime), "createBlock"));
     }
+    // cout << "BP 2" << endl;
 
     this->transaction_Counter = this->numNodes;
     int i = 1;
@@ -77,35 +81,47 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         if (currEvent->type == "txn_Generate") // To Generate Transactions after every interArrivalTxnTime Step
         {
             PeerNetwork.PeerVec[currEvent->senderId].GenerateTransaction(this, "Pays");
+            // cout << "BP 3" << endl;
         }
 
         if (currEvent->type == "txn_Receive") // Receive Transaction
         {
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveTransaction(this, currEvent);
+            // cout << "BP 4" << endl;
         }
 
         if (currEvent->type == "createBlock") // Generate Block
         {
+            // cout << "BP 5" << endl;
             PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
         }
 
         if (currEvent->type == "MineBlock") // Mine Block
         {
-
+            // cout << "BP 6" << endl;
+            // if (currEvent->senderId == 0)
+            //     PeerNetwork.PeerVec[currEvent->senderId].MinePrivate(this, currEvent, &(PeerNetwork.BlockCounter));
+            // else
             PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
         if (currEvent->type == "ReceiveBlock") // Receive Block
         {
-
+            // cout << "BP 7" << endl;
+            // if (currEvent->receiverId == 0)
+            //     PeerNetwork.PeerVec[currEvent->receiverId].ReceiveSelfish(this, currEvent, &(PeerNetwork.BlockCounter));
+            // else
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
 
         delete currEvent;
 
+        // if (i++ == 10000) //
+        //     break;
 
         if (this->terminationTime < this->globalTime)
             break;
-
+        // if (this->transaction_Counter > MAX_Transactions)
+        //     break;
     }
 
     this->writeBlockArrivalTimes(PeerNetwork, this->DateTime);
@@ -113,9 +129,11 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
     this->writeGraphDetails(PeerNetwork, adjMatrix, this->DateTime);
     this->writeNodeDetails(PeerNetwork, this->DateTime);
     this->write_Params_Ratios(PeerNetwork, this->DateTime);
+    // writePeerInfo
     for (int i = 0; i < this->numNodes; i++)
     {
-
+        // if (i == 1)
+        //     break;
         cout << "---------------------------------Blockchain At Peer " << i + 1 << "------------------------------------------" << endl;
         auto itr = PeerNetwork.PeerVec[i].Blockchain.begin();
         while (itr != PeerNetwork.PeerVec[i].Blockchain.end() && PeerNetwork.PeerVec[i].Blockchain.size() != 1)
@@ -232,16 +250,16 @@ void DiscreteEventSimulator ::writeNodeDetails(Peers &PeerNetwork, string DateTi
 
     string arg = "NodeDetails.csv";
     ofstream NodeDetailsLog(arg);
-    NodeDetailsLog << "NodeId,SpeedNode,CpuUsageNode,BlocksMinedInLongestChain,TotalBlocksMined,Ratio,Hashing Power" << endl;
+    NodeDetailsLog << "NodeId,SpeedNode,CpuUsageNode,BlocksMinedInLongestChain,TotalBlocksMined,Ratio" << endl;
     for (int j = 0; j < PeerNetwork.numNodes; j++)
     {
         MinedInLongestChain = PeerNetwork.PeerVec[j].getMinedInLongestChain();
         totalMinedBlocks = PeerNetwork.PeerVec[j].getTotalMinedBlocks();
         ratio = MinedInLongestChain / totalMinedBlocks;
         if (!(MinedInLongestChain && totalMinedBlocks))
-            NodeDetailsLog << j + 1 << "," << PeerNetwork.PeerVec[j].NWspeed << "," << PeerNetwork.PeerVec[j].CPU_Usage << "," << MinedInLongestChain << "," << totalMinedBlocks << ",NA" << "," << PeerNetwork.PeerVec[j].hashing_power <<endl;
+            NodeDetailsLog << j + 1 << "," << PeerNetwork.PeerVec[j].NWspeed << "," << PeerNetwork.PeerVec[j].CPU_Usage << "," << MinedInLongestChain << "," << totalMinedBlocks << ",NA" << endl;
         else
-            NodeDetailsLog << j + 1 << "," << PeerNetwork.PeerVec[j].NWspeed << "," << PeerNetwork.PeerVec[j].CPU_Usage << "," << MinedInLongestChain << "," << totalMinedBlocks << "," << ratio << "," << PeerNetwork.PeerVec[j].hashing_power << endl;
+            NodeDetailsLog << j + 1 << "," << PeerNetwork.PeerVec[j].NWspeed << "," << PeerNetwork.PeerVec[j].CPU_Usage << "," << MinedInLongestChain << "," << totalMinedBlocks << "," << ratio << endl;
     }
     NodeDetailsLog.close();
 

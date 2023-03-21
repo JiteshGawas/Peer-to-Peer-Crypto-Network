@@ -1,4 +1,4 @@
-# Spring 2023 CS 765 - Project part II
+# Spring 2023 CS 765 - Project part I
 ## Simulation of Peer to Peer Cryptocurrency Network
 ### Under guidance of Prof Vinay Ribeiro at IIT Bombay CSE in the course CS 765 : Introduction of Blockchains, Cryptocurrency and Smart Contracts 
 
@@ -20,9 +20,8 @@
 	g++ main.cpp Graph.cpp Simulator.cpp Peers.cpp transactions.cpp Blockchain.cpp Event.cpp -o main.cpp Graph.cpp Simulator.cpp Peers.cpp transactions.cpp Blockchain.cpp Event.cpp -lstdc++fs
 
 ## Run the code:
--You can run the code by the command ./Build/main z0 z1 AdvHashingPower %advConnectedTo type("self"/"stub") > outputfile.txt
--Here z0 and z1 are the 2 command line parameters that show the percentage of slow nodes and the percentage of CPU usage of nodes. AdvHashingPower is the percentage of hashing power (can be tried as 0.3,0.5 etc). %advConnectedTo is the percentage of nodes adversary is connected to in the graph. self is selfishMining and stub is Stubborn Mining.
-outputfile.txt is the file where you write the final result.
+-You can run the code by the command ./Build/main z0 z1 > outputfile.txt
+-Here z0 and z1 are the 2 command line parameters that show the percentage of slow nodes and the percentage of CPU usage of nodes. outputfile.txt is the file where you write the final result.
 
 ## Running the Visualizations :
 -You have to go to the folder Visualize
@@ -32,9 +31,7 @@ outputfile.txt is the file where you write the final result.
 ## Output:
 -The output of the simulator will be stored in the logs folder.
 -The log folder consists of Blockchain and other folder of BlockArrival Times that is asked in Part 8.
--The ratios asked are stored in the file named Params_Ratios.txt.
 -The simulator file stores a pdf of the blockchain created.
-
 
 
 
