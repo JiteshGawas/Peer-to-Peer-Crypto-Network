@@ -94,11 +94,7 @@ void Peers::PeerInfo()
     for (int i = 0; i < numNodes; i++)
     {
         cout << PeerVec[i].NodeId << "\t " << PeerVec[i].balance << "\t  " << PeerVec[i].NWspeed << "\t  " << PeerVec[i].CPU_Usage << "\t " << PeerVec[i].nodeType << "\t" << PeerVec[i].hashing_power << endl;
-        // cout << "Genesis Block Balances For Node " << i << endl;
-        // for (int j = 0; j < this->numNodes; j++)
-        // {
-        //     cout << PeerVec[i].Blockchain[1].NodeBalances[j] << " ";
-        // }
+
         cout << endl;
     }
 
@@ -223,32 +219,20 @@ void Node ::ReceiveTransaction(DiscreteEventSimulator *Simulator, Event *currEve
 
 void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
 {
-    // cout << "BP GB 1" << endl;
+
     int PrevBlockId, BlockLevel;
-    // if (this->nodeType == "hon")
-    // {
     PrevBlockId = this->lastBlockId;
     BlockLevel = this->Blockchain[this->lastBlockId].blockLevel + 1;
-    // }
-    // else
-    // {
-    //     PrevBlockId = this->lastBlockIdPrivate;
-    //     if (this->lastBlockId == this->lastBlockIdPrivate)
-    //         BlockLevel = this->Blockchain[this->lastBlockId].blockLevel + 1;
-    //     else
-    //         BlockLevel = this->privateBlocks.back().blockLevel + 1;
-    // }
 
-    // cout << "BP GB 2" << endl;
     Block *B = new Block(++(*BlockCounter), PrevBlockId, BlockLevel);
     int count = 500;
     B->minedId = this->NodeId;
     // cout << "Block is Created by the Node " << B->minedId << endl;
     B->NodeBalances = this->Blockchain[lastBlockId].NodeBalances; // Taking Balances from prev blocks
-    // cout << "BP GB 3" << endl;
+
     for (auto itr = this->PendingTransaction.begin(); itr != this->PendingTransaction.end() && this->PendingTransaction.size() != 1; ++itr)
     {
-        // cout << "Yaha Hoon Atka : TransSIze = " << this->PendingTransaction.size() << endl;
+
         if (B->NodeBalances[itr->second.senderId] >= itr->second.coins) // Balance of sender > Txn sender coins
         {
             B->Transactions.push_back(itr->second);
@@ -262,7 +246,7 @@ void Node ::GenerateBlock(DiscreteEventSimulator *Simulator, int *BlockCounter)
         if (count == 0)
             break;
     }
-    // cout << "BP GB 4" << endl;
+
     Simulator->EventQueue.push(new Event(B, Simulator->globalTime + Simulator->prop_delay + this->RandomInterArrivalBlockTime(Simulator->blockInterArrivalMeanTime), "MineBlock", this, NULL));
     delete B;
 }
@@ -285,7 +269,7 @@ void Node::MineBlock(DiscreteEventSimulator *Simulator, Event *currEvent, int *B
         this->lastBlockId = currEvent->B.blockId;
     }
     // after block is mined add an coinbase txn + 50 coins to the miner
-    //  cout << "Yahan To aa Hi Gaya" << endl;
+
     if (this->nodeType == "hon")
     {
         this->BroadcastBlock(Simulator, currEvent);
@@ -461,30 +445,7 @@ int Node ::getTotalMinedBlocks() // Number of blocks mined in the total blockcha
 }
 
 //---------------------------------------For Adversary-----------------------------------
-// void Node::MinePrivate(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
-// {
-//     if (this->blockChainLength + 1 != currEvent->B.blockLevel) // because the block was supposed to mine at the nextLevel
-//         return;
-//     string coinbaseMessage = to_string(this->NodeId) + " Mines 50 BTC";
-//     Transaction T(coinbaseMessage, currEvent->eventTime);
-//     currEvent->B.Transactions.push_back(T);
-//     currEvent->B.NodeBalances[this->NodeId] += 50;
 
-//     // this->Blockchain.insert({currEvent->B.blockId, currEvent->B});
-//     this->privateBlocks.push(currEvent->B);
-//     // this->privateChainLength++;
-
-//     // if (currEvent->B.blockLevel == this->blockChainLength + 1)
-//     // {
-//     //     this->blockChainLength++;
-//     //     this->lastBlockId = currEvent->B.blockId;
-//     // }
-//     // after block is mined add an coinbase txn + 50 coins to the miner
-
-//     // this->BroadcastBlock(Simulator, currEvent);
-//     this->lastBlockIdPrivate = currEvent->B.blockId;
-//     this->GenerateBlock(Simulator, BlockCounter);
-// }
 void Node ::BroadcastPrivateBlock(DiscreteEventSimulator *Simulator)
 {
     for (int i = 0; i < this->connectedPeers.size(); i++)
@@ -494,71 +455,15 @@ void Node ::BroadcastPrivateBlock(DiscreteEventSimulator *Simulator)
     }
 }
 
-// void Node ::ReceiveSelfish(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
-// {
-//     bool flag;
-
-//     if (this->ReceivedBlocks.find(currEvent->B.blockId) != this->ReceivedBlocks.end()) // i.e Block already Received
-//     {
-//         this->GenerateBlock(Simulator, BlockCounter);
-//         return;
-//     }
-//     this->BlockArrivalTimes[currEvent->B.blockId] = currEvent->eventTime;
-
-//     this->ReceivedBlocks[currEvent->B.blockId] = true;
-
-//     int parentHash = currEvent->B.PrevHash;
-
-//     if (this->Blockchain.find(parentHash) != this->Blockchain.end()) // Parent is found in blockchain
-//     {
-//         flag = this->VerifyAddBlock(currEvent->B); // Parent Found so verify & add Block
-//         if (flag)
-//             this->SelfishAttack(Simulator, currEvent, BlockCounter);
-//         // The Block was verified and added successfully
-//         Block TempBlock = currEvent->B;
-//         while (flag && (this->PendingBlocks.find(TempBlock.blockId) != this->PendingBlocks.end()))
-//         {
-//             flag = this->VerifyAddBlock(this->PendingBlocks[TempBlock.blockId]);
-//             if (flag)
-//                 this->SelfishAttack(Simulator, currEvent, BlockCounter);
-//             TempBlock = this->PendingBlocks[TempBlock.blockId];
-//             // verify and add this block to blockchain
-//         }
-
-//         // search if this newly added block is a parent of some block which are left in nonverifiedblocks
-//     }
-
-//     else // Parent not found in blockchain, therefore including it in pendingBlocks
-//     {
-//         this->PendingBlocks.insert({currEvent->B.PrevHash, currEvent->B});
-//     }
-//     this->GenerateBlock(Simulator, BlockCounter);
-// }
-
-// void Node ::addPrivateBlock(DiscreteEventSimulator *Simulator)
-// {
-//     Block B = this->privateBlocks.front();
-//     for (int i = 0; i < B.Transactions.size(); ++i)
-//     {
-//         // Balance of sender > Txn sender coins
-//         auto itr = this->PendingTransaction.find(B.Transactions[i].txnId);
-//         if (itr != this->PendingTransaction.end()) // TXN Is in pending transactions, therfore delete it from there
-//         {
-//             this->PendingTransaction.erase(B.Transactions[i].txnId);
-//         }
-//     }
-//     this->Blockchain.insert({B.blockId, B}); // Added to Blockchain
-//     this->PendingBlocks.erase(B.PrevHash);
-//     if (this->blockChainLength + 1 == B.blockLevel) // to keep the blockchain length consistent in case forks happens
-//     {
-//         this->blockChainLength++;
-//         this->lastBlockId = B.blockId;
-//     }
-// }
-
 void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
-    if (this->privateBlocks.size() == 1) // when lead becomes 0 : broadcast the mined block, lead = 1: broadcast all the blocks
+    if (this->privateBlocks.size() == 0)
+    {
+        // this->lastBlockIdPrivate = this->lastBlockId;
+        Selfishflag = 0;
+        this->GenerateBlock(Simulator, BlockCounter);
+    }
+    else if (this->privateBlocks.size() == 1) // when lead becomes 0 : broadcast the mined block, lead = 1: broadcast all the blocks
     {
 
         this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
@@ -567,7 +472,7 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
         this->privateBlocks.pop();
     }
 
-    if (this->privateBlocks.size() == 2)
+    else if (this->privateBlocks.size() == 2)
     {
         while (!privateBlocks.empty())
         {
@@ -577,19 +482,12 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
             this->privateBlocks.pop();
         }
     }
-    if (this->privateBlocks.size() > 2)
+    else if (this->privateBlocks.size() > 2)
     {
         this->BroadcastPrivateBlock(Simulator); // add to self blockchain also : Look at verifyAdd function
 
         this->GenerateBlock(Simulator, BlockCounter);
         this->privateBlocks.pop();
-    }
-
-    if (this->privateBlocks.size() == 0)
-    {
-        // this->lastBlockIdPrivate = this->lastBlockId;
-        Selfishflag = 1;
-        this->GenerateBlock(Simulator, BlockCounter);
     }
 
     // if (this->privateBlocks.size() > 2)
@@ -598,7 +496,7 @@ void Node ::SelfishAttack(DiscreteEventSimulator *Simulator, Event *currEvent, i
     //     this->privateBlocks.pop();
     // }
 }
-// Incomplete
+
 void Node ::StubbornAttack(DiscreteEventSimulator *Simulator, Event *currEvent, int *BlockCounter)
 {
 

@@ -27,6 +27,7 @@ void Block ::operator=(const Block *rhs)
     this->NodeBalances = rhs->NodeBalances;
     this->PrevHash = rhs->PrevHash;
     this->Transactions = rhs->Transactions;
+    this->minedTime = rhs->minedTime;
 }
 
 void Block ::operator=(const Block &rhs)

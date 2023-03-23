@@ -5,11 +5,12 @@
 #include <fstream>
 #include <experimental/filesystem>
 #include <unistd.h>
+#include <sstream>
 using namespace std;
 
 #define MAX_Transactions 5000
 
-DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean)
+DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean, string advType)
 {
     numNodes = numPeers;
     z_0 = z0;
@@ -26,9 +27,13 @@ DiscreteEventSimulator ::DiscreteEventSimulator(int numPeers, float z0, float z1
     this->globalTime = 0;
     this->transaction_Counter = 0;
     this->terminationTime = 3000; // Termination time
-
-    DateTime = __DATE__ " - " __TIME__;
     this->advMinPow = advMinPow;
+    // DateTime = __DATE__ " - " __TIME__;
+    stringstream ss;
+    // ss << this->numNodes << "(Nodes)-" << this->z_0 << "(Slow)-" << this->z_1 << "(Low_cpu)-" << this->advMinPow << "(Adv_HP)-" << this->advConPer << "(Tao)-" << advType;
+    ss << advType << "-" << this->numNodes << "-" << this->z_0 << "-" << this->z_1 << "-" << this->advMinPow << "-" << this->advConPer;
+
+    this->DateTime = ss.str();
 }
 
 void DiscreteEventSimulator ::PrintParameters()
@@ -44,7 +49,6 @@ bool compareTimestamp ::operator()(const Event *E1, const Event *E2)
         return false;
 }
 
-// added comment
 void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwork)
 {
     srand(time(0));
@@ -54,17 +58,14 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         cout << "Recreating : Still Not Connected" << endl;
         adjMatrix.createGraph(this->advConPer, PeerNetwork.numHonest);
     }
-    // cout << "BP 0" << endl;
-    PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
 
-    // cout << "BP 1" << endl;
+    PeerNetwork.setConnectedPeers(adjMatrix); // Set connected nodes vector for each node
 
     for (int i = 0; i < this->numNodes; i++) // Initial Transactions & createBlock Event For All Nodes
     {
         PeerNetwork.PeerVec[i].GenerateTransaction(this, "Pays");
         this->EventQueue.push(new Event(i, 50.0 + PeerNetwork.PeerVec[i].RandomInterArrivalBlockTime(blockInterArrivalMeanTime), "createBlock"));
     }
-    // cout << "BP 2" << endl;
 
     this->transaction_Counter = this->numNodes;
     int i = 1;
@@ -81,47 +82,61 @@ void DiscreteEventSimulator ::startSimulation(Graph &adjMatrix, Peers &PeerNetwo
         if (currEvent->type == "txn_Generate") // To Generate Transactions after every interArrivalTxnTime Step
         {
             PeerNetwork.PeerVec[currEvent->senderId].GenerateTransaction(this, "Pays");
-            // cout << "BP 3" << endl;
         }
 
         if (currEvent->type == "txn_Receive") // Receive Transaction
         {
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveTransaction(this, currEvent);
-            // cout << "BP 4" << endl;
         }
 
         if (currEvent->type == "createBlock") // Generate Block
         {
-            // cout << "BP 5" << endl;
+
             PeerNetwork.PeerVec[currEvent->senderId].GenerateBlock(this, &(PeerNetwork.BlockCounter));
         }
 
         if (currEvent->type == "MineBlock") // Mine Block
         {
-            // cout << "BP 6" << endl;
-            // if (currEvent->senderId == 0)
-            //     PeerNetwork.PeerVec[currEvent->senderId].MinePrivate(this, currEvent, &(PeerNetwork.BlockCounter));
-            // else
+
             PeerNetwork.PeerVec[currEvent->senderId].MineBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
         if (currEvent->type == "ReceiveBlock") // Receive Block
         {
-            // cout << "BP 7" << endl;
-            // if (currEvent->receiverId == 0)
-            //     PeerNetwork.PeerVec[currEvent->receiverId].ReceiveSelfish(this, currEvent, &(PeerNetwork.BlockCounter));
-            // else
+
             PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
         }
 
         delete currEvent;
 
-        // if (i++ == 10000) //
-        //     break;
-
         if (this->terminationTime < this->globalTime)
+        {
+            while (!this->EventQueue.empty())
+            {
+                while (!PeerNetwork.PeerVec[0].privateBlocks.empty())
+                {
+
+                    for (i = 1; i < this->numNodes; i++)
+                    {
+                        this->EventQueue.push(new Event(PeerNetwork.PeerVec[0].privateBlocks.front(), this->globalTime + this->prop_delay, "ReceiveBlock", &(PeerNetwork.PeerVec[0]), &(PeerNetwork.PeerVec[i])));
+                    }
+                    PeerNetwork.PeerVec[0].privateBlocks.pop();
+                }
+
+                currEvent = this->EventQueue.top();
+                this->EventQueue.pop();
+                this->globalTime = currEvent->eventTime;
+                eventCounter++;
+
+                if (currEvent->type == "ReceiveBlock") // Receive Block
+                {
+
+                    PeerNetwork.PeerVec[currEvent->receiverId].ReceiveBlock(this, currEvent, &(PeerNetwork.BlockCounter));
+                }
+                delete currEvent;
+            }
+
             break;
-        // if (this->transaction_Counter > MAX_Transactions)
-        //     break;
+        }
     }
 
     this->writeBlockArrivalTimes(PeerNetwork, this->DateTime);
@@ -324,6 +339,10 @@ void DiscreteEventSimulator ::write_Params_Ratios(Peers &PeerNetwork, string Dat
     NodeDetailsLog
         << "Number of Blocks In Blockchain, Number of Blocks Generated Across All Nodes, MPU_Node_overall" << endl;
     NodeDetailsLog << blocksinmainchain << "," << totalBlocks << "," << Ratio << "\n"
+                   << endl;
+
+    Ratio = MinedInLongestChain / blocksinmainchain;
+    NodeDetailsLog << "Revenue Ratio: " << Ratio << endl
                    << endl;
 
     NodeDetailsLog << "Simulation Parameters\n--------------------------------------------------------" << endl;

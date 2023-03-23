@@ -45,7 +45,7 @@ public:
     priority_queue<Event *, vector<Event *>, compareTimestamp> EventQueue;
     Event *currEvent;
 
-    DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean);
+    DiscreteEventSimulator(int numPeers, float z0, float z1, float advMinPow, float advConPer, float txnMean, float blkMean, string advType);
     void PrintParameters();
     void startSimulation(Graph &adjMatrix, Peers &PeerNetwork);
     void writeBlockArrivalTimes(Peers &PeerNetwork, string DateTime);
